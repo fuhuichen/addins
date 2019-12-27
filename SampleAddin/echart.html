@@ -1,0 +1,1173 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Addin Module</title>
+	<!-- css plugins -->
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/deviceOn.css">
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/common.css">
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/custom_echart.css">
+
+	<!-- javascript plugins -->
+	<script src="/static/addins/Sample Addin/libs/vue-2.6.10.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/vue-tables-2-1.4.70.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/axios.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/sweetalert2.all.min.js"></script>
+    <script src="/static/addins/Sample Addin/libs/vue-sweetalert2-2.1.1.min.js"></script>
+    <script src="/static/addins/Sample Addin/libs/echarts-4.3.0.min.js"></script>
+    <script src="/static/addins/Sample Addin/libs/moment-2.24.0.min.js"></script>
+    <script src="/static/addins/Sample Addin/libs/vue-single-select.min.js"></script>
+
+	<!-- javascript common plugins -->
+	<script src="/static/addins/Sample Addin/js/RMMGlobal.js"></script>
+    <script src="/static/addins/Sample Addin/js/DeviceOnApis.js"></script>
+    <script src="/static/addins/Sample Addin/js/util.js"></script>
+
+</head>
+<body style="background: #FAFAFA;">
+	<div id="app">
+        <div class="content">
+            <div class="search-box">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="cus-label">Account: </div>
+                        <vue-single-select v-model="selectedAccount" :options="accountOptions" option-label="name">
+                            <template slot="option" slot-scope="{option, index}">
+                                <div>
+                                    <span style="margin-left: 1rem;">{{option.name}}</span>
+                                </div>
+                            </template>
+                        </vue-single-select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cus-label">Device Group: </div>
+                        <vue-single-select v-model="selectedGroup" :options="groupOptions" option-label="name"></vue-single-select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cus-label">Device: </div>
+                        <vue-single-select v-model="selectedDevice" :options="deviceOptions" option-label="name">
+                            <template slot="option" slot-scope="{option, index}">
+                                <div>
+                                    <i :class="option.iconClass" :style="{'color': option.iconColor}" aria-hidden="true"></i>
+                                    <span style="margin-left: 1rem;">{{option.name}}</span>
+                                </div>
+                            </template>
+                        </vue-single-select>
+                    </div>
+                </div>
+            </div>
+            <div class="row" v-if="showPanel">
+                <div class="col-md-6 col-xl-4 inline-block">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">CPU Usage</div>
+                        <div id="chart_cpu" style="height:350px; width:100%;"></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4 inline-block">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">Memory Usage</div>
+                        <div id="chart_memory" style="height:350px; width:100%;" ></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4 inline-block">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">Network Monitor</div>
+                        <div id="chart_network" style="height:350px; width:100%;" ></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4 inline-block">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">Temperature Monitor</div>
+                        <div id="chart_temp" style="height:350px; width:100%;" ></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+</body>
+<script>
+    var size = 12;
+	var vue = new Vue({
+		el: '#app',
+		data: {
+            aid: 0,
+            gid: 0,
+            did: 0,
+            agentid: '',
+            selectedAccount: '',
+            accountOptions: [],
+            selectedGroup: '',
+            groupOptions: [],
+            selectedDevice: '',
+            deviceOptions: [],
+            showPanel: false,
+            showType: '',
+
+            capability: {},
+            plugins: [],
+            showProcessMonitor: false,
+            showNetworkMonitor: false,
+            showHardwareMonitor: false,
+            showHDDMonitor: false,
+            TIMEINTERVAL_AUTOREPORT: 30000,
+            TIMEINTERVAL_LATESTDATA: 3,
+            hanlders: ['ProcessMonitor', 'NetMonitor', 'SUSIControl', 'HDDMonitor'],
+            autoReportTimer: { ProcessMonitor: '', NetMonitor: '', SUSIControl: '', HDDMonitor: '' },
+            handlerDataTimer: { ProcessMonitor: '', NetMonitor: '', SUSIControl: '', HDDMonitor: '' },
+            pluginLatestData: {
+                ProcessMonitor: {
+                    name: 'ProcessMonitor',
+                    data: {
+                        availPhysMem: 0,
+                        totalPhysMem: 0,
+                        cpuUsage: 0,
+                    },
+                    processdata: [],
+                    isLoading: true,
+                    pluginAvailable: true,
+                },
+                NetMonitor: {
+                    name: 'NetMonitor',
+                    data: {
+                        names: [],
+                        values: [],
+                    },
+                    detaildata: [],
+                    isLoading: true,
+                    pluginAvailable: true,
+                },
+                SUSIControl: {
+                    name: 'SUSIControl',
+                    data: {},
+                    isLoading: true,
+                    pluginAvailable: true,
+                },
+                HDDMonitor: {
+                    name: 'HDDMonitor',
+                    data: [],
+                    isLoading: true,
+                    pluginAvailable: true,
+                }
+            },
+
+            COLOR: ['#92308D', '#006400', '#003377', '#930000', '#796400', '#336666'],
+            initChartCheck_network: true,
+            initChartCheck_temp: true,
+            chart_cpu: '',
+            chart_memory: '',
+            chart_network: '',
+            chart_temp: '',
+            option_cpu: {
+                backgroundColor: '#ffffff',
+                series: [{
+                    type: 'gauge',
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                        width: size * 2.5,
+                        shadowBlur: 0,
+                        color: [
+                            [0.2, '#e6caff'],
+                            [0.4, '#d3a4ff'],
+                            [0.6, '#9f35ff'],
+                            [0.8, '#9f35ff'],
+                            [1, '#3a006f']
+                        ]
+                        }
+                    },
+                    splitLine: {
+                        length: size * 2.5,
+                        lineStyle: {
+                        width: 1
+                        }
+                    },
+                    axisLabel: {
+                        formatter: function (e) {
+                            switch (e + '') {
+                                case '0':
+                                return '0'
+                                case '20':
+                                return '20'
+                                case '40':
+                                return '40'
+                                case '80':
+                                return '80'
+                                case '100':
+                                return '100'
+                                default:
+                                return ''
+                            }
+                        },
+                        distance: 1,
+                        textStyle: {
+                            fontSize: size * 1,
+                            fontWeight: ''
+                        }
+                    },
+                    pointer: {
+                        width: size * 0.7,
+                        length: size * 7,
+                    },
+                    startAngle: 140,
+                    endAngle: -140,
+                    axisTick: {
+                        show: true,
+                        lineStyle: {
+                        color: '#C7FBFC',
+                        width: size * 0.1
+                        },
+                        length: size * 0.8,
+                        splitNumber: 10
+                    },
+                    detail: {
+                        formatter: '{value} %',
+                        offsetCenter: [-80, -0],
+                        textStyle: {
+                        fontSize: size * 2,
+                        fontWeight: '',
+                        color: '#3a006f'
+                        }
+                    },
+                    data: [{value: 0}]
+                }]
+            },
+            option_memory: {
+                backgroundColor: '#ffffff',
+                series: [{
+                    type: 'gauge',
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                        width: size * 2.5,
+                        shadowBlur: 0,
+                        color: [
+                            [0.2, '#e6caff'],
+                            [0.4, '#d3a4ff'],
+                            [0.6, '#9f35ff'],
+                            [0.8, '#9f35ff'],
+                            [1, '#3a006f']
+                        ]
+                        }
+                    },
+                    splitLine: {
+                        length: size * 2.5,
+                        lineStyle: {
+                        width: 1
+                        }
+                    },
+                    axisLabel: {
+                        formatter: function (e) {
+                        switch (e + '') {
+                            case '0':
+                            return '0'
+                            case '20':
+                            return '20'
+                            case '40':
+                            return '40'
+                            case '80':
+                            return '80'
+                            case '100':
+                            return '100'
+                            default:
+                            return ''
+                        }
+                        },
+                        distance: 1,
+                        textStyle: {
+                        fontSize: size * 1,
+                        fontWeight: ''
+                        }
+                    },
+                    pointer: {
+                        width: size * 0.7,
+                        length: size * 7,
+                    },
+                    startAngle: 140,
+                    endAngle: -140,
+                    axisTick: {
+                        show: true,
+                        lineStyle: {
+                        color: '#C7FBFC',
+                        width: size * 0.1
+                        },
+                        length: size * 0.8,
+                        splitNumber: 10
+                    },
+                    detail: {
+                        formatter: '{value} %',
+                        offsetCenter: [-80, -0],
+                        textStyle: {
+                        fontSize: size * 2,
+                        fontWeight: '',
+                        color: '#3a006f'
+                        }
+                    },
+                    data: [{
+                        value: 0,
+                    }]
+                }]
+            },
+            option_network: {
+                tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    animation: false,
+                    type: 'cross'
+                },
+                padding: [5, 10]
+                },
+                toolbox: {
+                    right: 15,
+                    itemSize: 15,
+                    top: 50,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none',
+                            title: {
+                                zoom: 'Zoom',
+                                back: 'Back'
+                            },
+                            iconStyle: {
+                                borderColor: '#b4b4b4',
+                                borderWidth: 2,
+                                emphasis: {
+                                    borderColor: '#8C2387',
+                                    borderWidth: 2,
+                                }
+                            }
+                        },
+                    }
+                },
+                grid: {
+                    left: 40,
+                    right: 40,
+                    bottom: 40,
+                    top: 60,
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'time',
+                    splitLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        formatter: function (value) {
+                            return moment(value).format('HH:mm:ss')
+                        }
+                    },
+                    name: 'Time',
+                    nameLocation: 'middle',
+                    nameGap: 40,
+                },
+                yAxis: {
+                    type: 'value',
+                    boundaryGap: [0, '100%'],
+                    splitLine: {
+                        show: false
+                    },
+                    name: "Usage (%)",
+                    nameLocation: 'middle',
+                    nameGap: 40,
+                },
+                legend: {
+                    data: []
+                },
+                series: []
+            },
+            option_temp: {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false,
+                        type: 'cross'
+                    },
+                    padding: [5, 10]
+                },
+                toolbox: {
+                    right: 15,
+                    itemSize: 15,
+                    top: 50,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none',
+                            title: {
+                                zoom: 'Zoom',
+                                back: 'Back'
+                            },
+                            iconStyle: {
+                                    borderColor: '#b4b4b4',
+                                    borderWidth: 2,
+                                    emphasis: {
+                                    borderColor: '#8C2387',
+                                    borderWidth: 2,
+                                }
+                            }
+                        },
+                    }
+                },
+                grid: {
+                    left: 40,
+                    right: 40,
+                    bottom: 40,
+                    top: 60,
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'time',
+                    splitLine: {
+                        show: false
+                    },
+                    axisLabel: {
+                        formatter: function (value) {
+                            return moment(value).format('HH:mm:ss')
+                        }
+                    },
+                    name: 'Time',
+                    nameLocation: 'middle',
+                    nameGap: 40,
+                },
+                yAxis: {
+                    type: 'value',
+                    boundaryGap: [0, '100%'],
+                    splitLine: {
+                        show: false
+                    },
+                    name: 'Temperature (°C)',
+                    nameLocation: 'middle',
+                    nameGap: 40,
+                },
+                legend: {
+                    data: []
+                },
+                series: []
+            },
+		},
+		mounted: function() {
+            // 取得當前user aid
+            var aid = RMMGlobal.get().Login.aid;
+            this.getAccounts(aid);
+		},
+		methods: {
+            getAccounts: function (aid) {
+                DeviceOnApis.accounts.get.accounts(aid)
+                    .then(function (xhr) {
+                        if (xhr && xhr.data && xhr.data.accounts) {
+                            vue.accountOptions = xhr.data.accounts;
+                            let aAccount = vue.accountOptions.filter(function (g, i) {
+                                return g.aid === Number(aid);
+                            });
+                            if (aAccount.length === 0 && vue.accountOptions.length > 0) {
+                                vue.selectedAccount = vue.accountOptions[0];
+                            } else {
+                                vue.selectedAccount = aAccount[0];
+                            }
+                        }
+                    });
+            },
+            getDeviceGroups (aid) {
+                let oAllGroup = {
+                    aid: aid,
+                    description: '--- All ---',
+                    gid: 0,
+                    name: '--- All ---'
+                }
+                DeviceOnApis.accounts.get.deviceGroups(aid)
+                    .then(function (xhr) {
+                        if (xhr && xhr.data && xhr.data.accounts && xhr.data.accounts[0] && xhr.data.accounts[0].groups) {
+                            let groups = xhr.data.accounts[0].groups
+                            if (groups.length > 0) {
+                                groups = groups.sort(function (a, b) {
+                                    if (a.name < b.name) return -1
+                                    else if (a.name > b.name) return 1
+                                    else return 0
+                                });
+                                if (aid === RMMGlobal.get().Login.aid) {
+                                    groups.unshift(oAllGroup);
+                                }
+                                vue.groupOptions = groups;
+                                let aGroup = vue.groupOptions.filter(function (g, i) {
+                                    return g.gid === Number(vue.gid);
+                                });
+                                if ((aGroup.length === 0) && (vue.groupOptions.length > 0)) {
+                                    vue.selectedGroup = vue.groupOptions[0];
+                                } else {
+                                    if (vue.gid !== 0) {
+                                        for (let i = 0; i < vue.groupOptions.length; i++) {
+                                            if (vue.gid === vue.groupOptions[i].gid) {
+                                                vue.selectedGroup = vue.groupOptions[i];
+                                                return;
+                                            }
+                                        }
+                                    } else {
+                                        vue.selectedGroup = vue.groupOptions[0];
+                                    }
+                                }
+                            } else {
+                                vue.groupOptions = [];
+                                vue.selectedGroup = '';
+                                vue.deviceOptions = [];
+                                vue.selectedDevice = '';
+                            }
+                        }
+                    });
+            },
+            getDevices (gid, data) {
+                if (gid === 0) {
+                    DeviceOnApis.devicegroups.get.devicesAll(data)
+                        .then(function (xhr) {
+                            if (xhr && xhr.data && xhr.data.devices) {
+                                vue.deviceOptions = []
+                                let devices = xhr.data.devices.sort(function (a, b) {
+                                    let statusA = 0
+                                    let statusB = 0
+                                    if (a.connected) {
+                                        if (a.normal) {
+                                            statusA = 2
+                                        } else {
+                                            statusA = 1
+                                        }
+                                    }
+                                    if (b.connected) {
+                                        if (b.normal) {
+                                            statusB = 2
+                                        } else {
+                                            statusB = 1
+                                        }
+                                    }
+                                    if (statusA < statusB) return 1
+                                    else if (statusA > statusB) return -1
+                                    else {
+                                        if (a.name < b.name) return -1
+                                        else if (a.name > b.name) return 1
+                                        else return 0
+                                    }
+                                })
+
+                                devices.forEach(function (d, i) {
+                                    let iconColor
+                                    if (d.connected) {
+                                        if (d.normal) {
+                                            iconColor = 'rgb(117,181,51)'
+                                        } else {
+                                            iconColor = 'rgb(253,147,87)'
+                                        }
+                                    } else {
+                                        iconColor = 'rgb(153,153,153)'
+                                    }
+                                    vue.deviceOptions.push({
+                                        did: d.did,
+                                        name: d.name,
+                                        agentid: d.agentid,
+                                        connected: d.connected,
+                                        showIcon: true,
+                                        iconClass: 'fa fa-circle fa-lg',
+                                        iconColor: iconColor
+                                    })
+                                })
+                                if (vue.deviceOptions.length > 0) {
+                                    if (vue.did) {
+                                        let aDevice = vue.deviceOptions.filter(function (g, i) {
+                                            return g.did === Number(vue.did)
+                                        })
+                                        if ((aDevice.length === 0) && (vue.deviceOptions.length > 0)) {
+                                            for (let i = 0; i < vue.deviceOptions.length; i++) {
+                                                if (vue.did === vue.deviceOptions[i].did) {
+                                                    vue.selectedDevice = vue.deviceOptions[i]
+                                                }
+                                            }
+                                        } else {
+                                            vue.selectedDevice = aDevice[0]
+                                        }
+                                    } else {
+                                        vue.selectedDevice = vue.deviceOptions[0]
+                                    }
+                                } else {
+                                    vue.deviceOptions = []
+                                    vue.selectedDevice = ''
+                                }
+                            }
+                        })
+                } else {
+                    DeviceOnApis.devicegroups.get.devices(gid, data)
+                        .then(function (xhr) {
+                            if (xhr && xhr.data && xhr.data.groups && xhr.data.groups[0] && xhr.data.groups[0] && xhr.data.groups[0].devices) {
+                                vue.deviceOptions = []
+                                let devices = xhr.data.groups[0].devices.sort(function (a, b) {
+                                    let statusA = 0
+                                    let statusB = 0
+                                    if (a.connected) {
+                                        if (a.normal) {
+                                            statusA = 2
+                                        } else {
+                                            statusA = 1
+                                        }
+                                    }
+                                    if (b.connected) {
+                                        if (b.normal) {
+                                            statusB = 2
+                                        } else {
+                                            statusB = 1
+                                        }
+                                    }
+                                    if (statusA < statusB) return 1
+                                    else if (statusA > statusB) return -1
+                                    else {
+                                        if (a.name < b.name) return -1
+                                        else if (a.name > b.name) return 1
+                                        else return 0
+                                    }
+                                });
+
+                                devices.forEach(function (d, i) {
+                                    let iconColor
+                                    if (d.connected) {
+                                        if (d.normal) {
+                                            iconColor = 'rgb(117,181,51)'
+                                        } else {
+                                            iconColor = 'rgb(253,147,87)'
+                                        }
+                                    } else {
+                                        iconColor = 'rgb(153,153,153)'
+                                    }
+                                    vue.deviceOptions.push({
+                                        did: d.did,
+                                        name: d.name,
+                                        agentid: d.agentid,
+                                        connected: d.connected,
+                                        showIcon: true,
+                                        iconClass: 'fa fa-circle fa-lg',
+                                        iconColor: iconColor
+                                    })
+                                })
+                                if (vue.deviceOptions.length > 0) {
+                                    if (vue.did) {
+                                    let aDevice = vue.deviceOptions.filter(function (g, i) {
+                                        return g.aid === Number(vue.did)
+                                    })
+                                    if ((aDevice.length === 0) && (vue.deviceOptions.length > 0)) {
+                                        for (let i = 0; i < vue.deviceOptions.length; i++) {
+                                            if (vue.did === vue.deviceOptions[i].did) {
+                                                vue.selectedDevice = vue.deviceOptions[i]
+                                            } else {
+                                                vue.selectedDevice = vue.deviceOptions[0]
+                                            }
+                                        }
+                                    } else {
+                                        vue.selectedDevice = aDevice[0]
+                                    }
+                                    } else {
+                                    vue.selectedDevice = vue.deviceOptions[0]
+                                    }
+                                } else {
+                                    vue.deviceOptions = []
+                                    vue.selectedDevice = ''
+                                    vue.showPanel = false
+                                    vue.showType = 'no_device'
+                                }
+                            }
+                        })
+                        .catch(function (error) {
+                            DeviceOnApis.MessageBox.Error(vue, error)
+                        })
+                }
+            },
+            getDevicePlugins: function (did, agentid) {
+                DeviceOnApis.data.get.capability(did)
+                    .then(function (xhr) {
+                        if (xhr && xhr.data) {
+                            vue.capability = xhr.data
+                            // console.log(vue.capability)
+                            DeviceOnApis.devices.get.devicePlugins(did, true)
+                                .then(function (xhr) {
+                                    if (xhr && xhr.data && xhr.data.Plugins) {
+                                        vue.plugins = [];
+                                        let plugins = xhr.data.Plugins
+                                        for (let i = 0; i < plugins.length; i++) {
+                                            if (plugins[i].analysis) {
+                                                vue.plugins.push(plugins[i]);
+                                                switch (plugins[i].plugin) {
+                                                    case 'ProcessMonitor':
+                                                        vue.showProcessMonitor = true
+                                                        vue.pluginLatestData.ProcessMonitor.isLoading = true
+                                                        vue.pluginLatestData.ProcessMonitor.data.availPhysMem = 0
+                                                        vue.pluginLatestData.ProcessMonitor.data.totalPhysMem = 0
+                                                        vue.pluginLatestData.ProcessMonitor.data.cpuUsage = 0
+                                                        vue.run(did, agentid, 'ProcessMonitor')
+                                                        break
+                                                    case 'NetMonitor':
+                                                        vue.pluginLatestData.NetMonitor.isLoading = true
+                                                        vue.pluginLatestData.NetMonitor.data.names = []
+                                                        vue.pluginLatestData.NetMonitor.data.values = []
+                                                        vue.run(did, agentid, 'NetMonitor')
+                                                        break
+                                                    case 'SUSIControl':
+                                                        vue.pluginLatestData.SUSIControl.isLoading = true
+                                                        vue.pluginLatestData.SUSIControl.data = {}
+                                                        vue.run(did, agentid, 'SUSIControl')
+                                                        break
+                                                    case 'HDDMonitor':
+                                                        vue.showHDDMonitor = true
+                                                        vue.pluginLatestData.HDDMonitor.isLoading = true
+                                                        vue.pluginLatestData.HDDMonitor.data = []
+                                                        vue.run(did, agentid, 'HDDMonitor')
+                                                        break
+                                                }
+                                            }
+                                        }
+                                        // console.log(vue.plugins)
+                                    }
+                                })
+                                .catch(function (error) {
+                                    console.log(error)
+                                })
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error)
+                    })
+            },
+            run (did, agentid, handler) {
+                if (this.autoReportTimer[handler]) {
+                    clearInterval(this.autoReportTimer[handler])
+                    this.autoReportTimer[handler] = ''
+                }
+                this.startAutoReport(did, agentid, handler, this.getDeviceHandlerData)
+                this.autoReportTimer[handler] = setInterval(function () {
+                    vue.startAutoReport(did, agentid, handler, vue.getDeviceHandlerData)
+                }, this.TIMEINTERVAL_AUTOREPORT)
+            },
+            startAutoReport (did, agentId, handler, callback) {
+                let ajaxData = {
+                    'agentid': agentId,
+                    'plugin': handler,
+                    'interval': this.TIMEINTERVAL_LATESTDATA,
+                    'timeout': this.TIMEINTERVAL_AUTOREPORT / 1000
+                }
+                DeviceOnApis.devicectrl.put.intermittentReport(ajaxData)
+                    .then(function (xhr) {
+                        if (xhr && xhr.data && xhr.data.result) {
+                            if (vue.handlerDataTimer[handler]) {
+                                clearInterval(vue.handlerDataTimer[handler])
+                                vue.handlerDataTimer[handler] = ''
+                            }
+                            callback(did, agentId, handler)
+                            vue.handlerDataTimer[handler] = setInterval(function () {
+                                callback(did, agentId, handler)
+                            }, vue.TIMEINTERVAL_LATESTDATA * 1000)
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error)
+                        clearInterval(vue.autoReportTimer[handler])
+                        vue.autoReportTimer[handler] = ''
+                        vue.pluginLatestData[handler].isLoading = false
+                    })
+            },
+            getDeviceHandlerData (did, agentId, handler) {
+                DeviceOnApis.data.get.pluginLatestData(did, agentId, handler)
+                    .then(function (xhr) {
+                        vue.pluginLatestData[handler].isLoading = false
+                        if (xhr && xhr.data && xhr.data[handler]) {
+                            let res = xhr.data[handler]
+                            if (handler === 'ProcessMonitor') {
+                                let deviceSystemInfo = res['System Monitor Info']
+                                for (let i = 0; i < deviceSystemInfo.e.length; i++) {
+                                    switch (deviceSystemInfo.e[i].n) {
+                                        case 'CPU Usage':
+                                            vue.pluginLatestData[handler].data.cpuUsage = deviceSystemInfo.e[i].v
+                                            break
+                                        case 'totalPhysMemKB':
+                                            vue.pluginLatestData[handler].data.totalPhysMem = deviceSystemInfo.e[i].v
+                                            break
+                                        case 'availPhysMemKB':
+                                            vue.pluginLatestData[handler].data.availPhysMem = deviceSystemInfo.e[i].v
+                                            break
+                                    }
+                                }
+
+                                let deviceProcessInfo = res['Process Monitor Info']
+                                let data = []
+                                if (deviceProcessInfo.length > 0) {
+                                    if (deviceProcessInfo[0].e) {
+                                        for (let i = 0; i < deviceProcessInfo.length; i++) {
+                                            let oRow = {}
+                                            for (let j = 0; j < deviceProcessInfo[i].e.length; j++) {
+                                                if (deviceProcessInfo[i].e[j].n === 'Name') {
+                                                    oRow.process_name = deviceProcessInfo[i].e[j].sv
+                                                } else if (deviceProcessInfo[i].e[j].n === 'PID') {
+                                                    oRow.pid = deviceProcessInfo[i].e[j].v
+                                                } else if (deviceProcessInfo[i].e[j].n === 'CPU Usage') {
+                                                    oRow.cpu_usage = deviceProcessInfo[i].e[j].v
+                                                } else if (deviceProcessInfo[i].e[j].n === 'Mem Usage') {
+                                                    oRow.memory_usage = deviceProcessInfo[i].e[j].v
+                                                } else if (deviceProcessInfo[i].e[j].n === 'IsActive') {
+                                                    if (deviceProcessInfo[i].e[j].bv) {
+                                                        oRow.status = 'Active'
+                                                    } else {
+                                                        oRow.status = 'Inactive'
+                                                    }
+                                                }
+                                            }
+                                            data.push(oRow)
+                                        }
+                                    }
+                                }
+                                data = data.sort(function (a, b) {
+                                    return b.memory_usage - a.memory_usage
+                                })
+                                vue.pluginLatestData[handler].processdata = data
+                            } else if (handler === 'NetMonitor') {
+                                let deviceNetworkInfo = res['netMonInfoList']
+                                let names = []
+                                let values = []
+                                for (let i = 0; i < deviceNetworkInfo.length; i++) {
+                                    names.push(deviceNetworkInfo[i].bn)
+                                    let value = 0
+                                    for (let j = 0; j < deviceNetworkInfo[i].e.length; j++) {
+                                        if (deviceNetworkInfo[i].e[j].n === 'netUsage') {
+                                            value = deviceNetworkInfo[i].e[j].v
+                                        }
+                                    }
+                                    values.push(value)
+                                }
+                                vue.pluginLatestData.NetMonitor.data.names = names
+                                vue.pluginLatestData.NetMonitor.data.values = values
+                                vue.showNetworkMonitor = true
+
+                                let data = []
+                                for (let i = 0; i < deviceNetworkInfo.length; i++) {
+                                    let oRow = {}
+                                    oRow.name = deviceNetworkInfo[i].bn
+                                    for (let j = 0; j < deviceNetworkInfo[i].e.length; j++) {
+                                        if (deviceNetworkInfo[i].e[j].n === 'netUsage') {
+                                            oRow.netUsage = deviceNetworkInfo[i].e[j].v
+                                        } else if (deviceNetworkInfo[i].e[j].n === 'adapterName') {
+                                            oRow.adapterName = deviceNetworkInfo[i].e[j].sv
+                                        } else if (deviceNetworkInfo[i].e[j].n === 'adapterDescription') {
+                                            oRow.adapterDescription = deviceNetworkInfo[i].e[j].sv
+                                        } else if (deviceNetworkInfo[i].e[j].n === 'type') {
+                                            oRow.type = deviceNetworkInfo[i].e[j].sv
+                                        } else if (deviceNetworkInfo[i].e[j].n === 'netStatus') {
+                                            oRow.status = deviceNetworkInfo[i].e[j].sv
+                                        } else if (deviceNetworkInfo[i].e[j].n === 'Link SpeedMbps') {
+                                            oRow.linkSpeed = deviceNetworkInfo[i].e[j].v
+                                        }
+                                    }
+                                    if (oRow.linkSpeed && oRow.netUsage) {
+                                        oRow.netSpeed = Number(oRow.linkSpeed * oRow.netUsage)
+                                    } else {
+                                        oRow.netSpeed = 0
+                                    }
+                                    data.push(oRow)
+                                }
+                                data = data.sort(function (a, b) {
+                                    return b.netSpeed - a.netSpeed
+                                })
+                                vue.pluginLatestData.NetMonitor.detaildata = data
+                            } else if (handler === 'SUSIControl') {
+                                let deviceSUSIControlInfo = res['Hardware Monitor']
+                                let cpuValue, sysValue
+                                if (deviceSUSIControlInfo) {
+                                    for (let i = 0; i < deviceSUSIControlInfo['Temperature'].e.length; i++) {
+                                    if (deviceSUSIControlInfo['Temperature'].e[i].n === 'CPU') {
+                                        cpuValue = deviceSUSIControlInfo['Temperature'].e[i].v
+                                    } else if (deviceSUSIControlInfo['Temperature'].e[i].n === 'System') {
+                                        sysValue = deviceSUSIControlInfo['Temperature'].e[i].v
+                                    }
+                                    }
+                                    if (typeof cpuValue === 'undefined' && typeof sysValue === 'undefined') {
+                                    vue.somethingWrong(handler)
+                                    } else {
+                                    vue.pluginLatestData.SUSIControl.data = {
+                                        cpuValue: cpuValue,
+                                        sysValue: sysValue,
+                                    }
+                                    vue.showHardwareMonitor = true
+                                    }
+                                }
+                            } else if (handler === 'HDDMonitor') {
+                                let deviceHDDInfo = res['DiskInfo']
+                                let hddInfoList = res['hddInfoList']
+                                let disks = []
+                                for (let i = 0; i < deviceHDDInfo.length; i++) {
+                                    let name = deviceHDDInfo[i].bn
+                                    let free = 0
+                                    let total = 0
+                                    deviceHDDInfo[i].e.forEach(function (d, i) {
+                                        if (d.n === 'Free Disk Space') {
+                                            free = d.v
+                                        } else if (d.n === 'Total Disk Space') {
+                                            total = d.v
+                                        }
+                                    })
+                                    let hddName = ''
+                                    let hddIndex = 0
+                                    let powerOnTime = 0
+                                    let health = 0
+                                    let hddType = ''
+                                    let hddTemp = 0
+                                    hddInfoList[i].e.forEach(function (d, i) {
+                                        if (d.n === 'hddName') {
+                                            hddName = d.sv
+                                        } else if (d.n === 'hddIndex') {
+                                            hddIndex = d.v
+                                        } else if (d.n === 'powerOnTime') {
+                                            powerOnTime = d.v
+                                        } else if (d.n === 'health') {
+                                            health = d.v
+                                        } else if (d.n === 'hddType') {
+                                            hddType = d.sv
+                                        } else if (d.n === 'hddTemp') {
+                                            hddTemp = d.v
+                                        }
+                                    })
+                                    let used = total - free
+                                    disks.push({ name: name, free: free, total: total, used: used, hddName: hddName, hddIndex: hddIndex, powerOnTime: powerOnTime, health: health, hddType: hddType, hddTemp: hddTemp })
+                                }
+
+                                vue.pluginLatestData.HDDMonitor.data = disks
+                            }
+                        }
+                        // console.log(vue.pluginLatestData)
+                    })
+                    .catch(function (error) {
+                        console.log(error)
+                        clearInterval(vue.handlerDataTimer[handler])
+                        vue.handlerDataTimer[handler] = ''
+                        vue.pluginLatestData[handler].isLoading = false
+                    })
+            },
+            initChart: function(){
+                this.chart_cpu = echarts.init(document.getElementById('chart_cpu'), 'macarons');
+                this.chart_memory = echarts.init(document.getElementById('chart_memory'), 'macarons');
+                this.chart_network = echarts.init(document.getElementById('chart_network'), 'macarons');
+                this.chart_temp = echarts.init(document.getElementById('chart_temp'), 'macarons');
+            },
+            resizeWindowHandler () {
+                this.__resizeHandler = debounce(() => {
+                    if (vue.chart_cpu) {
+                        vue.chart_cpu.resize()
+                    }
+                    if (vue.chart_memory) {
+                        vue.chart_memory.resize()
+                    }
+                    if (vue.chart_network) {
+                        vue.chart_network.resize()
+                    }
+                    if (vue.chart_temp) {
+                        vue.chart_temp.resize()
+                    }
+                }, 500)
+                window.addEventListener('resize', this.__resizeHandler);
+            },
+            destroyCharts: function(){
+                if (this.chart_cpu) {
+                    this.chart_cpu.dispose();
+                    this.chart_cpu = null;
+                }
+                if (this.chart_memory) {
+                    this.chart_memory.dispose();
+                    this.chart_memory = null;
+                }
+                if (this.chart_network) {
+                    this.chart_network.dispose();
+                    this.chart_network = null;
+                }
+                if (this.chart_temp) {
+                    this.chart_temp.dispose();
+                    this.chart_temp = null;
+                }
+                this.initChartCheck_network = true;
+                this.initChartCheck_temp = true;
+                window.removeEventListener('resize', this.__resizeHandler);
+            }
+        },
+		watch: {
+            selectedAccount: function (data) {
+                if (data && data !== '') {
+                    this.aid = data.aid;
+                    this.getDeviceGroups(data.aid);
+                } else {
+                    this.aid = 0;
+                    this.gid = 0;
+                    this.did = 0;
+                    this.agentid = '';
+                    this.selectedGroup = '';
+                    this.groupOptions = [];
+                    this.selectedDevice = '';
+                    this.deviceOptions = [];
+                }
+            },
+            selectedGroup: function (data) {
+                if (data && data !== '') {
+                    vue.gid = data.gid;
+                    this.getDevices(data.gid, { pageSize: 10000, no: 1 });
+                } else {
+                    this.gid = 0;
+                    this.did = 0;
+                    this.agentid = '';
+                    this.selectedDevice = '';
+                    this.deviceOptions = [];
+                }
+            },
+            selectedDevice: function (data) {
+                if (data && data !== '') {
+                    if (data && data.did) {
+                        if (data.connected) {
+                            vue.showPanel = true;
+                            this.$nextTick(function () {
+                                vue.did = data.did;
+                                vue.agentid = data.agentid;
+                            })
+                        } else {
+                            this.showPanel = false;
+                            this.showType = 'lost_connection';
+                        }
+                    } else {
+                        this.showPanel = false;
+                        this.showType = 'no_device';
+                    }
+                }  else {
+                    this.did = 0;
+                    this.agentid = '';
+                }
+            },
+            did: function(val){
+                if(val && val !== 0) {
+                    this.destroyCharts();
+                    this.initChart();
+                    this.resizeWindowHandler();
+                    this.getDevicePlugins(this.did, this.agentid);
+                }
+            },
+            'pluginLatestData.ProcessMonitor.data.cpuUsage': function(val){
+                this.option_cpu.series[0].data[0].value = Number(val.toFixed(0));
+                this.chart_cpu.setOption(this.option_cpu, true);
+            },
+            'pluginLatestData.ProcessMonitor.data.availPhysMem':function(val){
+                var availPhysMem = val;
+                var totalPhysMem = this.pluginLatestData.ProcessMonitor.data.totalPhysMem;
+                var memoryUsage = (parseFloat(totalPhysMem) - parseFloat(availPhysMem)) / parseFloat(totalPhysMem);
+                memoryUsage = Number((memoryUsage * 100).toFixed(0));
+                this.option_memory.series[0].data[0].value = memoryUsage;
+                this.chart_memory.setOption(this.option_memory, true);
+            },
+            'pluginLatestData.NetMonitor.data.values': function (vals) {
+                var values = vals;
+                if(values.length == 0) return; 
+                var names = this.pluginLatestData.NetMonitor.data.names;
+                let now = new Date();
+                if (this.initChartCheck_network) {
+                    let series = [];
+                    for (let i = 0; i < values.length; i++) {
+                        let color = this.COLOR[i % this.COLOR.length];
+                        let value = values[i];
+                        series.push({
+                            name: names[i],
+                            itemStyle: {
+                                normal: {
+                                    color: color,
+                                }
+                            },
+                            type: 'line',
+                            showSymbol: false,
+                            hoverAnimation: false,
+                            data: [{
+                                name: now.toString(),
+                                value: [now, value]
+                            }]
+                        });
+                    }
+                    this.option_network.legend.data = names;
+                    this.option_network.series = series;
+                    this.chart_network.setOption(this.option_network);
+                    this.initChartCheck_network = false;
+                } else {
+                    let option_network = this.chart_network.getOption();
+                    let datas = [];
+                    for (let i = 0; i < values.length; i++) {
+                        let data = Object.assign([], option_network.series[i].data);
+                        let value = values[i];
+                        if (data.length > 100) data.shift();
+                        data.push({
+                            name: now.toString(),
+                            value: [now, value]
+                        });
+                        datas.push({ data: data });
+                    }
+                    this.chart_network.setOption({
+                        series: datas
+                    });
+                }
+            },
+            'pluginLatestData.SUSIControl.data': {
+                handler: function (vals) {
+                    var cpuValue = vals.cpuValue;
+                    var sysValue = vals.sysValue;
+                    var values = [];
+                    var names = [];
+                    if (typeof cpuValue !== 'undefined' && typeof sysValue !== 'undefined') {
+                        values.push(cpuValue);
+                        values.push(sysValue);
+                        names.push('CPU');
+                        names.push('System');
+                    } else if (typeof cpuValue !== 'undefined') {
+                        values.push(cpuValue);
+                        names.push('CPU');
+                    } else if (typeof sysValue !== 'undefined') {
+                        values.push(sysValue);
+                        names.push('System');
+                    }
+                    if(values.length == 0) return; 
+                    let now = new Date();
+                    if (this.initChartCheck_temp) {
+                        let series = [];
+                        for (let i = 0; i < values.length; i++) {
+                            let color = this.COLOR[i % this.COLOR.length];
+                            let value = values[i];
+                            series.push({
+                                name: names[i],
+                                itemStyle: {
+                                    normal: {
+                                    color: color,
+                                    }
+                                },
+                                type: 'line',
+                                showSymbol: false,
+                                hoverAnimation: false,
+                                data: [{
+                                    name: now.toString(),
+                                    value: [now, value]
+                                }]
+                            });
+                        }
+                        this.option_temp.legend.data = names;
+                        this.option_temp.series = series;
+                        this.chart_temp.setOption(this.option_temp);
+                        this.initChartCheck_temp = false;
+                    } else {
+                        let option_temp = this.chart_temp.getOption();
+                        let datas = [];
+                        for (let i = 0; i < values.length; i++) {
+                            let data = Object.assign([], option_temp.series[i].data);
+                            let value = values[i];
+                            if (data.length > 100) data.shift();
+                            data.push({
+                                name: now.toString(),
+                                value: [now, value]
+                            });
+                            datas.push({ data: data });
+                        }
+                        this.chart_temp.setOption({
+                            series: datas
+                        });
+                    }
+                },
+                deep: true
+            }
+        },
+		computed: {}
+	});
+</script>
+</html>

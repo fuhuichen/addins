@@ -1,0 +1,625 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Addin Module</title>
+	<!-- css plugins -->
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/deviceOn.css">
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/common.css">
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/custom_device.css">
+
+	<!-- javascript plugins -->
+	<script src="/static/addins/SampleAddin/libs/vue-2.6.10.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/vue-tables-2-1.4.70.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/axios.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/sweetalert2.all.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/vue-sweetalert2-2.1.1.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/echarts-4.3.0.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/moment-2.24.0.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/vue-single-select.min.js"></script>
+
+	<!-- javascript common plugins -->
+	<script src="/static/addins/SampleAddin/js/RMMGlobal.js"></script>
+  <script src="/static/addins/SampleAddin/js/DeviceOnApis.js"></script>
+  <script src="/static/addins/SampleAddin/js/util.js"></script>
+  <script src="/static/addins/SampleAddin/js/TestAPI.js"></script>
+
+</head>
+<body style="background: #F1F1F1;">
+	<div id="app">
+    <div class="content">
+      <div style="padding: 2vw;">
+        <div>
+          <select class="top-select" v-model="selectStore" style="width: 195px">
+            <option v-for="store in groups" :value="store">{{store}}</option>
+          </select>
+          <image height="17px" width="17px" src="/static/addins/SampleAddin/image/location.svg" style="margin: 0 10px 10px 10px"></image>
+          <span style="font-size: 24px">{{selectStore}}</span>
+        </div>
+        <div class="row" style="margin-top:20px">
+          <div class="col-md-3">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(1), borderLeft: 'solid 10px #E74A3B', height: (selectGroup==1?'140px':'110px')}" @click="clickGroup(1)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td rowSpan="2" width="80px"><image height="70px" width="70px" :src="getGroupImage(1)"></image></td>
+                    <td><span :style="{fontSize:45 + 'px', color: getGroupCountColor(1)}">{{deviceData_1.length}}</span></td>
+                  </tr>
+                  <tr><td><span :style="{color: getGroupNameColor(1)}">Main Device Exception</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED', height: (selectGroup==2?'140px':'110px')}" @click="clickGroup(2)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td rowSpan="2" width="80px"><image height="70px" width="70px" :src="getGroupImage(2)"></image></td>
+                    <td><span :style="{fontSize:45 + 'px', color: getGroupCountColor(2)}">{{deviceData_2.length}}</span></td>
+                  </tr>
+                  <tr><td><span :style="{color: getGroupNameColor(2)}">Peripheral Device Exception</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD', height: (selectGroup==3?'140px':'110px')}" @click="clickGroup(3)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td rowSpan="2" width="80px"><image height="70px" width="70px" :src="getGroupImage(3)"></image></td>
+                    <td><span :style="{fontSize:45 + 'px', color: getGroupCountColor(3)}">{{deviceData_3.length}}</span></td>
+                  </tr>
+                  <tr><td><span :style="{color: getGroupNameColor(3)}">Software Exception</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(4), borderLeft: 'solid 10px #858796', height: (selectGroup==4?'140px':'110px')}" @click="clickGroup(4)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td rowSpan="2" width="80px"><image height="70px" width="70px" :src="getGroupImage(4)"></image></td>
+                    <td><span :style="{fontSize:45 + 'px', color: getGroupCountColor(4)}">{{deviceData_4.length}}</span></td>
+                  </tr>
+                  <tr><td><span :style="{color: getGroupNameColor(4)}">All Device</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div width="100%" style="background-color:white; margin-top:20px; border: 2px solid #B6B6B6; box-shadow: 0px 2px 8px #00000075;">
+          <div :style="{height: '117px', paddingLeft: '40px'}">
+            <image height="30px" width="30px" :src="this.getSelectGroupIcon()" style="margin-bottom:10px"></image>
+            <span :style="{margin: '40px 30px 0 20px', paddingRight: '30px', borderRight: 'solid 1px #B6B6B6',
+                          fontSize: '24px', display: 'inline-block', color: getGroupBackgroundColor(selectGroup)}">
+              {{this.getSelectGroupName()}}
+            </span>
+            <select class="top-select" v-model="selectAction" style="width: 235px">
+              <option v-for="action in optionsAction" :value="action">{{action}}</option>
+            </select>
+            <button style="background-color:#4984FD; border-radius:8px; color:white; height:45px; width:115px; margin:0 20px;"
+                    @click="showModal_DeviceShutdown = true">
+              Action
+            </button>
+            <input type="text" class="InputStyle" placeholder="Search or start a new chat"
+                style="width:330px; position:absolute;  right:50px; margin-top:40px;">
+            </input>
+          </div>
+          <table style="width: 100%">
+            <tbody>
+              <tr class="rowDataHeader">
+                <td width="5%"></td>
+                <td width="15%">Name</td>
+                <td width="10%">Type</td>
+                <td width="15%">Device Status</td>
+                <td width="15%">Software Status</td>
+                <td width="15%">Peripheral Status</td>
+                <td width="10%">Online</td>
+                <td width="15%">Last Update</td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr v-for="(data, index) in deviceData_show">
+                <td colspan="8">
+                  <div v-if="selectDevice == data.agentid" @click="selectDevice = ''" style="width: 100%; background-color: #FFDDD8;">
+                    <table style="width: 100%;">
+                      <tbody>
+                        <tr class="rowDataContent">
+                          <td width="5%"><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
+                          <td width="15%">{{data.name}}</td>
+                          <td width="10%">{{data.type}}</td>
+                          <td width="15%">{{data.deviceStatus}}</td>
+                          <td width="15%">{{data.softwareStatus}}</td>
+                          <td width="15%">{{data.peripheralStatus}}</td>
+                          <td width="10%">{{data.online}}</td>
+                          <td width="15%">{{data.lastUpdate}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div style="padding:0 25px 25px 25px">
+                      <div class="shadow" style="background-color:white; border-radius:8px;">
+                        <div style="padding:10px">
+                          <image height="20px" width="20px" :src="getDeviceIconByGroup()" style="margin: -15px 10px 0 10px;"></image>
+                          <span style="font-size: 30px; font-weight: bold;">Device</span>
+                          <span style="color: #FF1100; margin: 10px;"></span>
+                          <button style="background-color:#4984FD; border-radius:8px; color:white; height:45px; width:225px; margin:0 20px; float:right;">
+                            Remote Control
+                          </button>
+                        </div>
+                        <table style="width: 100%;">
+                          <tbody>
+                            <tr class="rowDataHeader-inside">
+                              <td colspan="2">CPU_01</td>
+                              <td colspan="2">Memory_01</td>
+                              <td colspan="2">M/B</td>
+                              <td colspan="2">HDD</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr class="rowDataContent-inside">
+                              <td><span>Usage</span></td>
+                              <td style="padding:0px"><span style="/*color: #FF1100*/">{{selectDeviceDetail.CPUUsage}}</span></td>
+                              <td><span>Usage</span></td>
+                              <td style="padding:0px"><span>7.7/15.9GB(48%)</span></td>
+                              <td><span>Usage</span></td>
+                              <td style="padding:0px"><span>7.7/15.9GB(48%)</span></td>
+                              <td><span>Usage</span></td>
+                              <td style="padding:0px"><span>65/256GB</span></td>
+                            </tr>
+                            <tr class="rowDataContent-inside">
+                              <td><span>Temp</span></td>
+                              <td style="padding:0px"><span style="/*color: #FF1100*/">{{selectDeviceDetail.CPUTemp}}</span></td>
+                              <td><span>Speed</span></td>
+                              <td style="padding:0px"><span>2400 MHz</span></td>
+                              <td><span>Fan Speed</span></td>
+                              <td style="padding:0px"><span>2722RPM</span></td>
+                              <td><span>Temp</span></td>
+                              <td style="padding:0px"><span>{{selectDeviceDetail.MBTemp}}</span></td>
+                            </tr>
+                            <tr class="rowDataContent-inside">
+                              <td><span>Fan Speed</span></td>
+                              <td colspan="7" style="padding:0px"><span>2722RPM</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div><br>
+                      <div class="shadow" style="background-color:white; border-radius:8px;">
+                        <div style="padding:10px">
+                          <image height="20px" width="20px" :src="getSoftwareIconByGroup()" style="margin: -15px 10px 0 10px;"></image>
+                          <span style="font-size: 30px; font-weight: bold;">Software</span>
+                          <span style="color: #FF1100; margin: 10px;"></span>
+                          <button style="background-color:#4984FD; border-radius:8px; color:white; height:45px; width:125px; margin:0 20px;float:right;">
+                            Restart
+                          </button>
+                          <button style="background-color:#4984FD; border-radius:8px; color:white; height:45px; width:125px; margin:0 20px;float:right;">
+                            Turn off
+                          </button>
+                          <button style="background-color:#4984FD; border-radius:8px; color:white; height:45px; width:125px; margin:0 20px;float:right;">
+                            Turn on
+                          </button>
+                        </div>
+                        <table style="width: 100%;">
+                          <tbody>
+                            <tr class="rowDataHeader-inside">
+                              <td>Name</td>
+                              <td>State</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.ProcessList">
+                              <td><span>{{data.Name}}</span></td>
+                              <td><span>{{data.State}}</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div><br>
+                      <div class="shadow" style="background-color:white; border-radius:8px;">
+                        <div style="padding:10px">
+                          <image height="20px" width="20px" :src="getPeripheryIconByGroup()" style="margin: -15px 10px 0 10px;"></image>
+                          <span style="font-size: 30px; font-weight: bold;">Monitor</span>
+                          <span style="color: #FF1100; margin: 10px;"></span>
+                        </div>
+                        <table style="width: 100%;">
+                          <tbody>
+                            <tr class="rowDataHeader-inside">
+                              <td>Name</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.monitorList">
+                              <td><span>{{data.MonitorName}}</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div><br>
+                      <div class="shadow" style="background-color:white; border-radius:8px;">
+                        <div style="padding:10px">
+                          <image height="20px" width="20px" :src="getPeripheryIconByGroup()" style="margin: -15px 10px 0 10px;"></image>
+                          <span style="font-size: 30px; font-weight: bold;">USB</span>
+                          <span style="color: #FF1100; margin: 10px;"></span>
+                        </div>
+                        <table style="width: 100%;">
+                          <tbody>
+                            <tr class="rowDataHeader-inside">
+                              <td>Name</td>
+                              <td>Path</td>
+                              <td>exist</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.usbList">
+                              <td><span>{{data.Name}}</span></td>
+                              <td><span>{{data.Path}}</span></td>
+                              <td><span>{{data.exist}}</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div><br>
+                      <div class="shadow" style="background-color:white; border-radius:8px;">
+                        <div style="padding:10px">
+                          <image height="20px" width="20px" :src="getPrinterIconByGroup()" style="margin: -15px 10px 0 10px;"></image>
+                          <span style="font-size: 30px; font-weight: bold;">Printer</span>
+                          <span style="color: #FF1100; margin: 10px;"></span>
+                        </div>
+                        <table style="width: 100%;">
+                          <tbody>
+                            <tr class="rowDataHeader-inside">
+                              <td>Model</td>
+                              <td>WorkingStatus</td>
+                              <td>PaperRollStatus</td>
+                              <td>exist</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.printerList">
+                              <td><span>{{data.Model}}</span></td>
+                              <td><span>{{data.WorkingStatus}}</span></td>
+                              <td><span>{{data.PaperRollStatus}}</span></td>
+                              <td><span>{{data.exist}}</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else @click="clickDevice(data.agentid)" style="width: 100%;">
+                    <table style="width: 100%;">
+                      <tbody>
+                        <tr class="rowDataContent" :style="{backgroundColor: (data.checked ? '#F5F6FA' : '')}">
+                          <td width="5%"><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
+                          <td width="15%">{{data.name}}</td>
+                          <td width="10%">{{data.type}}</td>
+                          <td width="15%">{{data.deviceStatus}}</td>
+                          <td width="15%">{{data.softwareStatus}}</td>
+                          <td width="15%">{{data.peripheralStatus}}</td>
+                          <td width="10%">{{data.online}}</td>
+                          <td width="15%">{{data.lastUpdate}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <modal v-if="showModal_DeviceShutdown">
+        <div class="modal-mask">
+          <div class="modal-wrapper">
+            <div class="modal-container" style="width:650px; height:400px; text-align: center;">
+              <div style="padding:20px">
+                <image height="94px" width="94px" src="/static/addins/SampleAddin/image/warning.svg"></image>
+              </div>
+              <div style="padding:20px">
+                <span style="font-size:45px">Device shutdown</span>
+              </div>
+              <button class="btnCancel" @click="showModal_DeviceShutdown = false">
+                Cancel
+              </button>
+              <button class="btnConfirm" @click="showModal_DeviceShutdown = false; showModal_DeviceShutdownSuccess = true;">
+                shutdown
+              </button>
+            </div>
+          </div>
+        </div>
+      </modal>
+      <modal v-if="showModal_DeviceShutdownSuccess">
+        <div class="modal-mask" @click="showModal_DeviceShutdownSuccess = false">
+          <div class="modal-wrapper">
+            <div class="modal-container" style="width:650px; height:400px; text-align: center;">
+              <div style="padding:20px">
+                <image height="94px" width="94px" src="/static/addins/SampleAddin/image/success.svg"></image>
+              </div>
+              <div style="padding:20px">
+                <span style="font-size:45px">Device shuttting down Success</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </modal>
+    </div>
+	</div>
+</body>
+<script>
+  Vue.use(VueTables.ClientTable);
+	var vue = new Vue({
+		el: '#app',
+		data: {
+      showModal_DeviceShutdown: false,
+      showModal_DeviceShutdownSuccess: false,
+      optionsCity: ['Taipei','Hsinchu','Keelung','Taichung','Tainan'],
+      optionsRegion: ['Banciao','Region1','Region2','Region3','Region4'],
+      optionsStore: ['Wen Hua Store','Store1','Store2','Store3','Store4'],
+      selectCity: 'Taipei',
+      selectRegion: 'Banciao',
+      selectStore: '',
+      optionsAction: ["Device Shutdown"],
+      selectAction: 'Device Shutdown',
+			columns: [
+				'name',
+				'type',
+				'deviceStatus',
+				'softwareStatus',
+				'peripheralStatus',
+				'online',
+        'lastUpdate'
+			],
+			tableOptions : {
+				sortable: ['name','type','deviceStatus','softwareStatus','peripheralStatus','online','lastUpdate'],
+				filterable: ['Name'],
+				texts: {
+					count: 'Showing {from} to {to} of {count} records|{count} records|1 record',
+					first: 'First',
+					last: 'Last',
+					filter: 'Filter:',
+					filterPlaceholder: 'Search query',
+					limit: 'Records:',
+					page: 'Page:',
+					noResults: "No matching records",
+					filterBy: 'Filter by {column}',
+					loading: 'Loading...',
+					defaultOption: 'Select {column}',
+					columns: 'Columns'
+				}
+			},
+      selectGroup: 1,
+      selectDevice: '',
+      groups:[],
+      deviceData_1:[],
+      deviceData_2:[],
+      deviceData_3:[],
+      deviceData_4:[],
+      deviceData_show:[],
+      selectDeviceDetail: {},
+		},
+		mounted: function() {
+      // 取得當前user aid
+      //var aid = RMMGlobal.get().Login.aid;
+      //console.log("aid : " + aid);
+      //this.getAccounts(aid);
+      //this.getDeviceAll();
+      this.getAccountMySelf();
+      this.getDeviceList();
+		},
+		methods: {
+      /*getAccounts: function (aid) {
+        DeviceOnApis.accounts.get.accounts(aid)
+        .then(function (xhr) {
+          if (xhr && xhr.data && xhr.data.accounts) {
+            vue.accountOptions = xhr.data.accounts;
+            let aAccount = vue.accountOptions.filter(function (g, i) {
+              return g.aid === Number(aid);
+            });
+            if (aAccount.length === 0 && vue.accountOptions.length > 0) {
+              vue.selectedAccount = vue.accountOptions[0];
+            } else {
+              vue.selectedAccount = aAccount[0];
+            }
+          }
+        });
+      },*/
+      /*getDeviceAll: function() {
+        console.log("getDeviceAll");
+        DeviceOnApis.devicegroups.get
+        .devicesAll({ pageSize: 10000, no: 1 })
+        .then(xhr => {
+          if (xhr && xhr.data && xhr.data.devices) {
+            console.log("devices : " + JSON.stringify(xhr.data.devices));
+            for(var i=0 ; i<xhr.data.devices.length ; ++i) {
+              this.deviceData.push({checked: false, name: xhr.data.devices[i].name, type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
+            }
+            this.deviceData.push({checked: false, name: "HNK-15DF37", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
+            this.deviceData.push({checked: false, name: "HNK-15DF38", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
+            this.deviceData.push({checked: false, name: "HNK-15DF39", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
+            this.deviceData.push({checked: false, name: "HNK-15DF40", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
+          }
+        })
+        .catch(error => {
+          console.log("getDeviceAll error : " + error);
+          DeviceOnApis.MessageBox.Error(self, error)
+        })
+      },*/
+      getAccountMySelf: function() {
+        TestAPI.accounts.post.account()
+        .then(function (xhr) {
+          if (xhr && xhr.data && xhr.data.groups) {
+            console.log("accountmyself data : " + JSON.stringify(xhr.data));
+            var groups = [];
+            for(var i=0 ; i<xhr.data.groups.length ; ++i) {
+              if(xhr.data.groups[i].gid && xhr.data.groups[i].aid && xhr.data.groups[i].name) {
+                if(vue.selectStore == '') {
+                  vue.selectStore = xhr.data.groups[i].name;
+                }
+                groups.push(xhr.data.groups[i].name);
+              }
+            }
+            console.log(groups);
+            vue.groups = groups;
+          }
+        });
+      },
+      getDeviceList: function() {
+        TestAPI.device.post.list()
+        .then(function (xhr) {
+          if (xhr && xhr.data && xhr.data.devices) {
+            console.log("device list data : " + JSON.stringify(xhr.data));
+            var deviceData_1 = [], deviceData_2 = [], deviceData_3 = [], deviceData_4 = [];
+            for(var i=0 ; i<xhr.data.devices.length ; ++i) {
+              var deviceData = {
+                checked: false,
+                name: xhr.data.devices[i].name,
+                agentid: xhr.data.devices[i].agentid,
+                type: xhr.data.devices[i].product,
+                deviceStatus: xhr.data.devices[i].extra.normal ? "Normal" : "Abnormal",
+                softwareStatus: xhr.data.devices[i].extra.softwareRunning ? "Normal" : "Abnormal",
+                peripheralStatus: xhr.data.devices[i].extra.peripheralConnected ? "Normal" : "Abnormal",
+                online: xhr.data.devices[i].extra.online ? "Online" : "Offline",
+                lastUpdate: moment(xhr.data.devices[i].extra.lastUpdate*1000).format("YYYY/MM/DD HH:mm"),
+                devicegroups: xhr.data.devices[i].devicegroups,
+              };
+              if(xhr.data.devices[i].extra.normal == false) {
+                deviceData_1.push(deviceData);
+              }
+              if(xhr.data.devices[i].extra.softwareRunning == false) {
+                deviceData_2.push(deviceData);
+              }
+              if(xhr.data.devices[i].extra.peripheralConnected == false) {
+                deviceData_3.push(deviceData);
+              }
+              deviceData_4.push(deviceData);
+            }
+            vue.deviceData_1 = deviceData_1;
+            vue.deviceData_2 = deviceData_2;
+            vue.deviceData_3 = deviceData_3;
+            vue.deviceData_4 = deviceData_4;
+            vue.deviceData_show = deviceData_1;
+          }
+        });
+      },
+      getDeviceDetail: function(agentid) {
+        vue.selectDeviceDetail = {};
+        TestAPI.device.post.detail(agentid)
+        .then(function (xhr) {
+          if (xhr && xhr.data) {
+            console.log("getDeviceDetail data : ", xhr.data);
+            if(xhr.data.errorcode == 0) {
+              vue.selectDeviceDetail = xhr.data;
+              if(vue.selectDeviceDetail.SUSIControl &&
+                 vue.selectDeviceDetail.SUSIControl["Hardware Monitor"] &&
+                 vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature &&
+                 vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e) {
+                vue.selectDeviceDetail.CPUTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[0].v + "°C";
+                vue.selectDeviceDetail.MBTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[1].v + "°C";
+              } else {
+                vue.selectDeviceDetail.CPUTemp = "N/A";
+                vue.selectDeviceDetail.MBTemp = "N/A";
+              }
+              if(vue.selectDeviceDetail.SystemMonitorInfo) {
+                vue.selectDeviceDetail.CPUUsage = vue.selectDeviceDetail.SystemMonitorInfo.e[1].v + "%";
+              }
+            }
+          }
+        });
+      },
+      getSelectGroupName: function() {
+        if(this.selectGroup == 1) {
+          return "Main Device Exception";
+        } else if(this.selectGroup == 2) {
+          return "Peripheral Device Exception";
+        } else if(this.selectGroup == 3) {
+          return "Software Exception";
+        } else if(this.selectGroup == 4) {
+          return "All Device";
+        } else {
+          return "";
+        }
+      },
+      getSelectGroupIcon: function() {
+        return "/static/addins/SampleAddin/image/group" + this.selectGroup + "_icon.svg";
+      },
+      getGroupImage: function(index) {
+        if(this.selectGroup == index) {
+          return "/static/addins/SampleAddin/image/group" + index + "_focus.png";
+        } else {
+          return "/static/addins/SampleAddin/image/group" + index + "_unfocus.png";
+        }
+      },
+      getDeviceIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Device" + this.selectGroup + ".svg";
+      },
+      getSoftwareIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Software" + this.selectGroup + ".svg";
+      },
+      getPeripheryIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Periphery" + this.selectGroup + ".svg";
+      },
+      getPrinterIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Printer" + this.selectGroup + ".svg";
+      },
+      getGroupNameColor: function(index) {
+        if(this.selectGroup == index) {
+          return "white";
+        } else {
+          switch(index) {
+            case 1: return "#E74A3B"; break;
+            case 2: return "#2091ED"; break;
+            case 3: return "#36B9CD"; break;
+            case 4: return "#858796"; break;
+          }
+          return "black";
+        }
+      },
+      getGroupCountColor: function(index) {
+        if(this.selectGroup == index) {
+          return "white";
+        } else {
+          return "black";
+        }
+      },
+      getGroupBackgroundColor: function(index) {
+        if(this.selectGroup == index) {
+          switch(index) {
+            case 1: return "#E74A3B"; break;
+            case 2: return "#2091ED"; break;
+            case 3: return "#36B9CD"; break;
+            case 4: return "#858796"; break;
+          }
+          return "white";
+        } else {
+          return "white";
+        }
+      },
+      clickGroup: function(index) {
+        this.selectGroup = index;
+        this.selectDevice = '';
+        switch(index) {
+          case 1:
+            this.deviceData_show = this.deviceData_1;
+          break;
+          case 2:
+            this.deviceData_show = this.deviceData_2;
+          break;
+          case 3:
+            this.deviceData_show = this.deviceData_3;
+          break;
+          case 4:
+            this.deviceData_show = this.deviceData_4;
+          break;
+          default:
+            this.deviceData_show = this.deviceData_4;
+        }
+      },
+      clickDevice:function(agentid) {
+        this.selectDevice = agentid;
+        this.getDeviceDetail(agentid);
+      }
+    },
+		computed: {}
+	});
+</script>
+</html>

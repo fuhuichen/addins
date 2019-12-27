@@ -1,0 +1,41 @@
+/* 狀態 */
+.fa-circle {
+    text-shadow: 0 0 1px #000fff;
+}
+.online {
+    color: rgb(117, 181, 51);
+}
+.offline {
+    color: rgb(153, 153, 153);
+}
+.abnormal {
+    color: rgb(253, 147, 87);
+}
+
+.table-responsive {
+    overflow-x: initial;
+}
+
+/* 功能小按鈕 */
+p.device-action-text {
+    margin-bottom: 0px;
+    font-size: 12px;
+}
+.d-flex.justify-content-center {
+    text-align: center;
+}
+.device-action .device-action-enable {
+    color: #8c2387;
+    cursor: pointer;
+}
+.device-action .device-action-disable {
+    color: #e6e5e6;
+    cursor: not-allowed;
+}
+.device-action .device-action-on {
+    color: #75b533;
+}
+.device-action .device-action-off {
+    color: #f27474;
+}
+

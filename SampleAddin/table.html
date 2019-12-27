@@ -1,0 +1,170 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Addin Module</title>
+	<!-- css plugins -->
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/deviceOn.css">
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/common.css">
+	<link rel="stylesheet" href="/static/addins/Sample Addin/css/custom_table.css">
+
+	<!-- javascript plugins -->
+	<script src="/static/addins/Sample Addin/libs/vue-2.6.10.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/vue-tables-2-1.4.70.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/axios.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/sweetalert2.all.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/vue-sweetalert2-2.1.1.min.js"></script>
+	<script src="/static/addins/Sample Addin/libs/moment-2.24.0.min.js"></script>
+    <script src="/static/addins/Sample Addin/libs/vue-single-select.min.js"></script>
+
+	<!-- javascript common plugins -->
+	<script src="/static/addins/Sample Addin/js/RMMGlobal.js"></script>
+	<script src="/static/addins/Sample Addin/js/DeviceOnApis.js"></script>
+	<script src="/static/addins/Sample Addin/js/util.js"></script>
+
+</head>
+<body style="background: #FAFAFA;">
+	<div id="app">
+		<div class="content">
+			<v-client-table :columns="columns" :data="deviceData" :options="tableOptions">
+				<div slot="status" slot-scope="props" :title="props.row.status">
+					<span :class="props.row.statusClass">
+						<i :class="props.row.iconClass" aria-hidden="true"></i>
+					</span>
+				</div>
+				<div slot="power" slot-scope="props" class="d-flex justify-content-center">
+					<span v-if="props.row.btnPoweron" class="device-action">
+						<span
+							v-if="(props.row.lock === '')"
+							class="device-action-enable"
+							@click="powerDevice(props.row.did, 'start')"
+						>
+							<i class="fa fa-power-off device-action-on" aria-hidden="true"></i>
+							<p class="device-action-text">Power on</p>
+						</span>
+						<span v-else
+							class="device-action-disable">
+							<i class="fa fa-power-off" aria-hidden="true"></i>
+							<p class="device-action-text">Power on</p>
+						</span>
+					</span>
+				
+					<span v-if="(props.row.btnPoweroff)" class="device-action">
+						<span
+							v-if="(props.row.lock === '')"
+							class="device-action-enable"
+							@click="powerDevice(props.row.did, 'shutdown')"
+						>
+							<i class="fa fa-power-off device-action-off" aria-hidden="true"></i>
+							<p class="device-action-text">Power off</p>
+						</span>
+						<span v-else
+							class="device-action-disable">
+							<i class="fa fa-power-off" aria-hidden="true"></i>
+							<p class="device-action-text">Power off</p>
+						</span>
+					</span>
+				</div>
+			</v-client-table>
+		</div>
+	</div>
+</body>
+<script>
+	Vue.use(VueTables.ClientTable); // Client table
+	// Vue.use(VueTables.ServerTable); // Server table
+	// Vue.use(VueTables.Event); // Event
+
+	var vue = new Vue({
+		el: '#app',
+		data: {
+			columns: [
+				'status',
+				'name',
+				'power',
+				'devicegroups',
+				'wolmode',
+				'lock'
+			],
+			deviceData: [],
+			tableOptions : {
+				sortable: ['status', 'name', 'power', 'devicegroups', 'wolmode', 'lock'],
+				filterable: ['name'],
+				texts: {
+					count: 'Showing {from} to {to} of {count} records|{count} records|1 record',
+					first: 'First',
+					last: 'Last',
+					filter: 'Filter:',
+					filterPlaceholder: 'Search query',
+					limit: 'Records:',
+					page: 'Page:',
+					noResults: "No matching records",
+					filterBy: 'Filter by {column}',
+					loading: 'Loading...',
+					defaultOption: 'Select {column}',
+					columns: 'Columns'
+				}
+			},
+		},
+		mounted: function() {
+			// 取得當前user aid
+			let aid = RMMGlobal.get().Login.aid
+
+			// 取得當前user所有設備
+			DeviceOnApis.devicegroups.get
+				.devicesAll({ pageSize: 10000, no: 1 })
+				.then(function (xhr) {
+					if (xhr && xhr.data && xhr.data.devices) {
+						let devices = xhr.data.devices;
+						devices.map(function (d, i) {
+							if (d.connected) {
+								if (d.normal) {
+									d.statusClass = 'online'
+									d.status = 'Device Online'
+								} else {
+									d.statusClass = 'abnormal'
+									d.status = 'Device Abnormal'
+								}
+							} else {
+								d.statusClass = 'offline'
+								d.status = 'Device Offline'
+							}
+							if (d.lock) {
+								if (
+									d.lock.toLowerCase() === 'none' ||
+									d.lock === '' ||
+									d.lock.toLowerCase() === 'normal' ||
+									d.lock.toLowerCase() === 'disconnected' ||
+									d.lock.toLowerCase() === 'abnormal'
+								) {
+									d.iconClass = 'fa fa-circle fa-lg'
+								} else {
+									d.iconClass = 'fa fa-spinner fa-pulse fa-lg fa-fw'
+									d.status = 'Device Busy'
+								}
+							} else d.iconClass = 'fa fa-circle fa-lg'
+							d.lock = d.lock === 'None' ? '' : d.lock
+
+							// btns
+							if (d.connected) {
+								d.btnPoweron = false
+								d.btnPoweroff = d.functionList.indexOf('shutdown') > -1
+							} else {
+								d.btnPoweron = true
+								d.btnPoweroff = false
+							}
+						})
+						vue.deviceData = devices
+					}
+				})
+				.catch(function (error) {
+					console.log(error)
+				})
+
+		},
+		methods: {},
+		watch: {},
+		computed: {}
+	});
+</script>
+</html>

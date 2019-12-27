@@ -1,0 +1,723 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Addin Module</title>
+	<!-- css plugins -->
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/deviceOn.css">
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/common.css">
+	<link rel="stylesheet" href="/static/addins/SampleAddin/css/custom_overview.css">
+
+	<!-- javascript plugins -->
+	<script src="/static/addins/SampleAddin/libs/vue-2.6.10.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/vue-tables-2-1.4.70.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/axios.min.js"></script>
+	<script src="/static/addins/SampleAddin/libs/sweetalert2.all.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/vue-sweetalert2-2.1.1.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/echarts-4.3.0.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/moment-2.24.0.min.js"></script>
+  <script src="/static/addins/SampleAddin/libs/vue-single-select.min.js"></script>
+
+	<!-- javascript common plugins -->
+	<script src="/static/addins/SampleAddin/js/RMMGlobal.js"></script>
+  <script src="/static/addins/SampleAddin/js/DeviceOnApis.js"></script>
+  <script src="/static/addins/SampleAddin/js/util.js"></script>
+  <script src="/static/addins/SampleAddin/js/TestAPI.js"></script>
+
+  <script src="//cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/v-charts/lib/index.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/v-charts/lib/style.min.css">
+
+</head>
+<body style="background: #F1F1F1;">
+	<div id="app">
+    <div class="content">
+      <div style="padding: 2vw;">
+        <div>
+          <span style="font-size: 32px">{{date}}</span>
+        </div>
+        <div style="margin: 15px 0">
+          <table width="100%">
+            <tr>
+              <td style="width:1%; white-space:nowrap;">
+                <span style="font-size: 26px">目前狀態</span>
+              </td>
+              <td>
+                <hr style="border:1px solid #B1B1B1">
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <div>
+              <image height="30px" width="30px" :src="this.getGroupIcon(1)" style="margin: 10px 10px 15px 10px"></image>
+              <span style="font-size: 26px; color: #606060;">主機</span>
+            </div>
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(1), borderLeft: 'solid 10px #E74A3B'}" @click="clickModal1('device')">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(1)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(1)}">異常硬體</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; color: #606060;">目前共</span>
+                      <span style="font-size: 45px;">{{abnormalCount}}</span>
+                      <span style="font-size: 20px; color: #606060;">台</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div>
+              <image height="30px" width="30px" :src="this.getGroupIcon(2)" style="margin: 10px 10px 15px 10px"></image>
+              <span style="font-size: 26px; color: #606060;">軟體</span>
+            </div>
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED'}" @click="clickGroup(2)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(2)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(2)}">異常主機</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; color: #606060;">目前共</span>
+                      <span style="font-size: 45px;">{{softwareAbnormalCount}}</span>
+                      <span style="font-size: 20px; color: #606060;">台</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div>
+              <image height="30px" width="30px" :src="this.getGroupIcon(3)" style="margin: 10px 10px 15px 10px"></image>
+              <span style="font-size: 26px; color: #606060;">周邊</span>
+            </div>
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD'}" @click="clickGroup(3)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(3)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(3)}">異常主機</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; color: #606060;">目前共</span>
+                      <span style="font-size: 45px;">{{peripheralAbnormalCount}}</span>
+                      <span style="font-size: 20px; color: #606060;">台</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="padding: 2vw;">
+        <div>
+          <span style="font-size: 32px">異常統計</span>
+          <span style="font-size: 20px"> ( 僅顯示當日最高值 )</span>
+        </div>
+        <div style="margin: 15px 0">
+          <table width="100%">
+            <tr>
+              <td style="width:1%; white-space:nowrap;">
+                <span style="font-size: 26px">今日累積</span>
+              </td>
+              <td>
+                <hr style="border:1px solid #B1B1B1">
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-md-4" style="padding-bottom:20px">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(1), borderLeft: 'solid 10px #E74A3B'}" @click="showModal_2 = true">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(1)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(1)}">異常頻率</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最高</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">次</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED'}" @click="clickGroup(2)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(2)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(2)}">異常頻率</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最高</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">次</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD'}" @click="clickGroup(3)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(3)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(3)}">異常頻率</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最高</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">次</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(1), borderLeft: 'solid 10px #E74A3B'}" @click="showModal_3 = true">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(1)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(1)}">異常持續時間</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最長</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">hr</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED'}" @click="clickGroup(2)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(2)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(2)}">異常持續時間</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最長</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">hr</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD'}" @click="clickGroup(3)">
+              <table width="100%">
+                <tbody>
+                  <tr>
+                    <td width="80px"><image height="70px" width="70px" :src="getGroupImage(3)"></image></td>
+                    <td style="padding-bottom: 30px"><span :style="{fontSize: '26px', color: getGroupNameColor(3)}">異常持續時間</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 20px">
+                      <span style="font-size: 20px; padding-right: 30px; color: #606060;">林口店 客顯機003</span>
+                      <span style="font-size: 20px; color: #606060;">最長</span>
+                      <span style="font-size: 45px;">10</span>
+                      <span style="font-size: 20px; color: #606060;">hr</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="modal" style="display: none">
+        <modal v-if="showModal_1">
+          <div class="modal-mask" @click="showModal_1 = false">
+            <div class="modal-wrapper">
+              <div class="modal-container" style="width:60%">
+                <div>
+                  <image height="70px" width="70px" :src="getGroupImage(1)"></image>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">{{date}}</span>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">硬體異常</span>
+                </div>
+                <ve-line :data="chartData"></ve-line>
+                <table width="100%" style="border: 1px solid #F8F8F8; margin-top: 20px">
+                  <tbody>
+                    <tr class="rowDataHeader">
+                      <td>No.</td>
+                      <td>地點</td>
+                      <td>異常次數</td>
+                      <td>最大DT</td>
+                      <td>平均DT</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                  <tbody>
+                    <tr class="rowDataContent">
+                      <td>1</td>
+                      <td>林口店</td>
+                      <td>17</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>2</td>
+                      <td>員林店</td>
+                      <td>5</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>3</td>
+                      <td>大林店</td>
+                      <td>5</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>4</td>
+                      <td>林森店</td>
+                      <td>3</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>5</td>
+                      <td>士林店</td>
+                      <td>2</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </modal>
+        <modal v-if="showModal_2">
+          <div class="modal-mask" @click="showModal_2 = false">
+            <div class="modal-wrapper">
+              <div class="modal-container" style="width:60%;">
+                <div>
+                  <image height="70px" width="70px" :src="getGroupImage(1)"></image>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">{{date}}</span>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">異常頻率</span>
+                </div>
+                <table width="100%" style="border: 1px solid #F8F8F8; margin-top: 20px">
+                  <tbody>
+                    <tr class="rowDataHeader">
+                      <td>No.</td>
+                      <td>地點</td>
+                      <td>主機</td>
+                      <td>異常次數</td>
+                      <td>最長時間</td>
+                      <td>平均時間</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                  <tbody>
+                    <tr class="rowDataContent">
+                      <td>1</td>
+                      <td>林口店</td>
+                      <td>客顯003</td>
+                      <td>7</td>
+                      <td>7hr</td>
+                      <td>7hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>2</td>
+                      <td>員林店</td>
+                      <td>客顯003</td>
+                      <td>5</td>
+                      <td>3hr</td>
+                      <td>3hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>3</td>
+                      <td>大林店</td>
+                      <td>客顯003</td>
+                      <td>5</td>
+                      <td>3hr</td>
+                      <td>3hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>4</td>
+                      <td>林森店</td>
+                      <td>客顯003</td>
+                      <td>3</td>
+                      <td>1hr</td>
+                      <td>1hr</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>5</td>
+                      <td>士林店</td>
+                      <td>客顯003</td>
+                      <td>2</td>
+                      <td><1hr</td>
+                      <td><1hr</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </modal>
+        <modal v-if="showModal_3">
+          <div class="modal-mask" @click="showModal_3 = false">
+            <div class="modal-wrapper">
+              <div class="modal-container" style="width:60%;">
+                <div>
+                  <image height="70px" width="70px" :src="getGroupImage(1)"></image>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">{{date}}</span>
+                  <span :style="{fontSize: '26px', color: getGroupNameColor(1)}">異常持續時間</span>
+                </div>
+                <table width="100%" style="border: 1px solid #F8F8F8; margin-top: 20px">
+                  <tbody>
+                    <tr class="rowDataHeader">
+                      <td>No.</td>
+                      <td>地點</td>
+                      <td>主機</td>
+                      <td>最長時間</td>
+                      <td>異常範圍</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                  <tbody>
+                    <tr class="rowDataContent">
+                      <td>1</td>
+                      <td>林口店</td>
+                      <td>客顯003</td>
+                      <td>1hr</td>
+                      <td>22:00 ~ 23:00</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>2</td>
+                      <td>員林店</td>
+                      <td>客顯003</td>
+                      <td>1hr</td>
+                      <td>22:00 ~ 23:00</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>3</td>
+                      <td>大林店</td>
+                      <td>客顯003</td>
+                      <td>1hr</td>
+                      <td>22:00 ~ 23:00</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>4</td>
+                      <td>林森店</td>
+                      <td>客顯003</td>
+                      <td>1hr</td>
+                      <td>22:00 ~ 23:00</td>
+                      <td></td>
+                    </tr>
+                    <tr class="rowDataContent">
+                      <td>5</td>
+                      <td>士林店</td>
+                      <td>客顯003</td>
+                      <td>1hr</td>
+                      <td>22:00 ~ 23:00</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </modal>
+      </div>
+    </div>
+	</div>
+</body>
+<script>
+  Vue.use(VueTables.ClientTable);
+	var vue = new Vue({
+		el: '#app',
+		data: {
+      date: '',
+      showModal_1: false,
+      showModal_2: false,
+      showModal_3: false,
+      selectGroup: 1,
+      abnormalCount: 0,
+      softwareAbnormalCount: 0,
+      peripheralAbnormalCount: 0,
+      devicelist: [],
+      devicelist_show_1: [],
+      chartData: {
+        columns: ['時', '異常次數'],
+        rows: [
+          { '時': '1', '異常次數': 3 },
+          { '時': '2', '異常次數': 7 },
+          { '時': '3', '異常次數': 4 },
+          { '時': '4', '異常次數': 8 },
+          { '時': '5', '異常次數': 22 },
+          { '時': '6', '異常次數': 11 },
+          { '時': '7', '異常次數': 35 },
+          { '時': '8', '異常次數': 4 },
+          { '時': '9', '異常次數': 8 },
+          { '時': '10', '異常次數': 3 },
+          { '時': '11', '異常次數': 6 },
+          { '時': '12', '異常次數': 15 },
+          { '時': '13', '異常次數': 55 },
+          { '時': '14', '異常次數': 22 },
+          { '時': '15', '異常次數': 11 },
+          { '時': '16', '異常次數': 30 },
+          { '時': '17', '異常次數': 41 },
+          { '時': '18', '異常次數': 32 },
+          { '時': '19', '異常次數': 15 },
+          { '時': '20', '異常次數': 7 },
+          { '時': '21', '異常次數': 3 },
+          { '時': '22', '異常次數': 32 },
+          { '時': '23', '異常次數': 18 },
+          { '時': '24', '異常次數': 32 },
+        ]
+      }
+		},
+		mounted: function() {
+      // 取得當前user aid
+      var aid = RMMGlobal.get().Login.aid;
+      console.log("aid : " + aid);
+      //this.getAccounts(aid);
+      this.getDeviceHistory();
+      document.getElementById('modal').style.display = 'block';
+		},
+		methods: {
+      getAccounts: function (aid) {
+          DeviceOnApis.accounts.get.accounts(aid)
+              .then(function (xhr) {
+                  if (xhr && xhr.data && xhr.data.accounts) {
+                      vue.accountOptions = xhr.data.accounts;
+                      let aAccount = vue.accountOptions.filter(function (g, i) {
+                          return g.aid === Number(aid);
+                      });
+                      if (aAccount.length === 0 && vue.accountOptions.length > 0) {
+                          vue.selectedAccount = vue.accountOptions[0];
+                      } else {
+                          vue.selectedAccount = aAccount[0];
+                      }
+                  }
+              });
+      },
+      getDeviceHistory: function() {
+        TestAPI.device.post.history()
+        .then(function (xhr) {
+          if (xhr && xhr.data && xhr.data.devices) {
+            console.log("device history data : " + JSON.stringify(xhr.data));
+            var abnormalCount = 0;
+            var softwareAbnormalCount = 0;
+            var peripheralAbnormalCount = 0;
+            var tmpDevicelist = [];
+            for(var i=0 ; i<xhr.data.devices.length ; ++i) {
+              tmpDevicelist.push({
+                name: xhr.data.devices[i].name,
+                deviceErrorCount: xhr.data.devices[i].deviceHistory ? xhr.data.devices[i].deviceHistory.count : 0,
+                deviceErrorMax: xhr.data.devices[i].deviceHistory ? xhr.data.devices[i].deviceHistory.max : 0,
+                deviceErrorAvg: xhr.data.devices[i].deviceHistory ? xhr.data.devices[i].deviceHistory.avg : 0,
+                processErrorCount: xhr.data.devices[i].processHistory ? xhr.data.devices[i].processHistory.count : 0,
+                processErrorMax: xhr.data.devices[i].processHistory ? xhr.data.devices[i].processHistory.max : 0,
+                processErrorAvg: xhr.data.devices[i].processHistory ? xhr.data.devices[i].processHistory.avg : 0,
+                peripheralErrorCount: xhr.data.devices[i].peripheralHistory ? xhr.data.devices[i].peripheralHistory.count : 0,
+                peripheralErrorMax: xhr.data.devices[i].peripheralHistory ? xhr.data.devices[i].peripheralHistory.max : 0,
+                peripheralErrorAvg: xhr.data.devices[i].peripheralHistory ? xhr.data.devices[i].peripheralHistory.avg : 0,
+              });
+              if(xhr.data.devices[i].extra) {
+                if(!xhr.data.devices[i].extra.normal) {
+                  abnormalCount++;
+                }
+                if(!xhr.data.devices[i].extra.softwareRunning) {
+                  softwareAbnormalCount++;
+                }
+                if(!xhr.data.devices[i].extra.peripheralConnected) {
+                  peripheralAbnormalCount++;
+                }
+              }
+            }
+            vue.date = xhr.data.date;
+            vue.devicelist = tmpDevicelist;
+            vue.abnormalCount = abnormalCount;
+            vue.softwareAbnormalCount = softwareAbnormalCount;
+            vue.peripheralAbnormalCount = peripheralAbnormalCount;
+          }
+        });
+      },
+      getGroupImage: function(index) {
+        return "/static/addins/SampleAddin/image/group" + index + "_unfocus.png";
+        /*if(this.selectGroup == index) {
+          return "/static/addins/SampleAddin/image/group" + index + "_focus.png";
+        } else {
+          return "/static/addins/SampleAddin/image/group" + index + "_unfocus.png";
+        }*/
+      },
+      getDeviceIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Device" + this.selectGroup + ".svg";
+      },
+      getSoftwareIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Software" + this.selectGroup + ".svg";
+      },
+      getPeripheryIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Periphery" + this.selectGroup + ".svg";
+      },
+      getPrinterIconByGroup: function() {
+        return "/static/addins/SampleAddin/image/Printer" + this.selectGroup + ".svg";
+      },
+      getGroupNameColor: function(index) {
+        switch(index) {
+          case 1: return "#E74A3B"; break;
+          case 2: return "#2091ED"; break;
+          case 3: return "#36B9CD"; break;
+          case 4: return "#858796"; break;
+        }
+        return "black";
+        /*if(this.selectGroup == index) {
+          return "white";
+        } else {
+          switch(index) {
+            case 1: return "#E74A3B"; break;
+            case 2: return "#2091ED"; break;
+            case 3: return "#36B9CD"; break;
+            case 4: return "#858796"; break;
+          }
+          return "black";
+        }*/
+      },
+      getGroupBackgroundColor: function(index) {
+        return "white";
+        /*if(this.selectGroup == index) {
+          switch(index) {
+            case 1: return "#E74A3B"; break;
+            case 2: return "#2091ED"; break;
+            case 3: return "#36B9CD"; break;
+            case 4: return "#858796"; break;
+          }
+          return "white";
+        } else {
+          return "white";
+        }*/
+      },
+      clickGroup: function(index) {
+        this.selectGroup = index;
+      },
+      clickModal1: function(type) {
+        var devicelist=[], tmp=[];
+        if(type == 'device') {
+          tmp = vue.devicelist.sort(function(a, b) {
+            return a.deviceErrorCount > b.deviceErrorCount;
+          });
+        } else if (type == 'process') {
+          tmp = vue.devicelist.sort(function(a, b) {
+            return a.processErrorCount > b.processErrorCount;
+          });
+        } else if (type == 'peripheral') {
+          tmp = vue.devicelist.sort(function(a, b) {
+            return a.peripheralErrorCount > b.peripheralErrorCount;
+          });
+        }
+        for(var i=0 ; i<tmp.length && i<5 ; ++i) {
+          devicelist.push({
+            index: i+1,
+            name: tmp[i].name,
+            errorCount: vue.getErrorCountByType(tmp[i],type),
+            maxDT: vue.getMaxDTByType(tmp[i],type),
+            avgDT: vue.getAvgDTByType(tmp[i],type)
+          })
+        }
+        vue.showModal_1 = true;
+        vue.devicelist_show = devicelist;
+      },
+      getErrorCountByType(data,type) {
+        switch(type) {
+          case 'device':
+            return data.deviceErrorCount;
+          break;
+          case 'process':
+            return data.processErrorCount;
+          break;
+          case 'peripheral':
+            return data.peripheralErrorCount;
+          break;
+        }
+        return 0;
+      },
+      getMaxDTByType(data,type) {
+        switch(type) {
+          case 'device':
+            return data.deviceErrorMax;
+          break;
+          case 'process':
+            return data.processErrorMax;
+          break;
+          case 'peripheral':
+            return data.peripheralErrorMax;
+          break;
+        }
+        return 0;
+      },
+      getAvgDTByType(data,type) {
+        switch(type) {
+          case 'device':
+            return data.deviceErrorAvg;
+          break;
+          case 'process':
+            return data.processErrorAvg;
+          break;
+          case 'peripheral':
+            return data.peripheralErrorAvg
+          break;
+        }
+        return 0;
+      },
+      getGroupIcon: function(index) {
+        return "/static/addins/SampleAddin/image/group" + index + "_icon.svg";
+      },
+    },
+		computed: {}
+	});
+</script>
+</html>

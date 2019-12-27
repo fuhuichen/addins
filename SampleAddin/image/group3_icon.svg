@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="26.628" height="28.512" viewBox="0 0 26.628 28.512">
+  <g id="Peripheral_Device_Exception3" data-name="Peripheral Device Exception3" transform="translate(-1605.104 -4550.255)">
+    <g id="Peripheral_Device_Exception2" data-name="Peripheral Device Exception2" transform="translate(1606.104 4551.255)">
+      <path id="Union_3" data-name="Union 3" d="M5.615,26.512V19.5H1.97A1.976,1.976,0,0,1,0,17.532V8.077a1.976,1.976,0,0,1,1.97-1.97H5.712V0h13.2V6.107h3.743a1.976,1.976,0,0,1,1.969,1.97v9.455A1.975,1.975,0,0,1,22.658,19.5H19.013v7.011Z" transform="translate(0 0)" fill="#36b9cd" stroke="#36b9cd" stroke-miterlimit="10" stroke-width="2"/>
+    </g>
+    <g id="Peripheral_Device_Exception2-2" data-name="Peripheral Device Exception2" transform="translate(1606.104 4551.255)">
+      <path id="Path_3994" data-name="Path 3994" d="M56.285,386.948a.886.886,0,1,1-.887-.886A.887.887,0,0,1,56.285,386.948Z" transform="translate(-51.054 -376.784)" fill="#fff"/>
+      <path id="Path_3995" data-name="Path 3995" d="M68.392,368.616H64.649V362.51h-13.2v6.106H47.7a1.976,1.976,0,0,0-1.97,1.97v9.455a1.976,1.976,0,0,0,1.97,1.97h2.064v-1.379H47.7a.6.6,0,0,1-.591-.591v-9.455A.6.6,0,0,1,47.7,370H68.392a.6.6,0,0,1,.591.591v9.455a.6.6,0,0,1-.591.591H66.344v1.379h2.048a1.976,1.976,0,0,0,1.97-1.97v-9.455A1.976,1.976,0,0,0,68.392,368.616Zm-5.121,0H52.825v-4.727H63.271Z" transform="translate(-45.734 -362.51)" fill="#fff"/>
+      <g id="Group_4694" data-name="Group 4694" transform="translate(3.907 13.887)">
+        <path id="Path_3996" data-name="Path 3996" d="M72.466,397.761H55.652v1.379h1.707v11.246h13.4V399.14h1.707Zm-3.086,11.246H58.738v-9.848H69.379Z" transform="translate(-55.652 -397.761)" fill="#fff"/>
+        <g id="Group_4693" data-name="Group 4693" transform="translate(4.849 4.083)">
+          <g id="Group_4691" data-name="Group 4691">
+            <path id="Path_3997" data-name="Path 3997" d="M74.386,409.5H68.649a.689.689,0,1,1,0-1.379h5.737a.689.689,0,1,1,0,1.379Z" transform="translate(-67.96 -408.126)" fill="#fff"/>
+          </g>
+          <g id="Group_4692" data-name="Group 4692" transform="translate(0 3.099)">
+            <path id="Path_3998" data-name="Path 3998" d="M74.386,417.371H68.649a.689.689,0,1,1,0-1.379h5.737a.689.689,0,1,1,0,1.379Z" transform="translate(-67.96 -415.992)" fill="#fff"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

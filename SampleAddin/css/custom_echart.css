@@ -1,0 +1,31 @@
+.chart-title {
+    text-align: center;
+    line-height: 20px;
+    color: rgba(0, 0, 0, 1);
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+.chart-wrapper {
+    padding: 16px 16px 0;
+    margin-bottom: 32px;
+    margin-top: 12px;
+    color: #666;
+    background: #fff;
+    box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.02);
+    border: 1px solid #cccccc;
+}
+
+.panel_wrap {
+    height: 350px;
+    overflow-y: auto;
+}
+.panel_wrap2 {
+    height: 350px;
+    overflow-y: auto;
+}
+::-webkit-scrollbar {display:none;}
+
+.inline-block {
+    display: inline-block;
+}
+  

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="26.628" height="20.37" viewBox="0 0 26.628 20.37">
+  <g id="Software_Exception3" data-name="Software Exception3" transform="translate(-356.104 -409.629)">
+    <g id="Software_Exception" data-name="Software Exception" transform="translate(310.991 24.221)">
+      <path id="Path_3982" data-name="Path 3982" d="M68.825,386.408h-20.8a1.921,1.921,0,0,0-1.916,1.916v14.539a1.921,1.921,0,0,0,1.916,1.916h20.8a1.921,1.921,0,0,0,1.916-1.916V388.324A1.921,1.921,0,0,0,68.825,386.408Z" fill="#2091ed" stroke="#2091ed" stroke-width="2"/>
+    </g>
+    <g id="Software_Exception-2" data-name="Software Exception" transform="translate(310.991 24.221)">
+      <path id="Path_3982-2" data-name="Path 3982" d="M68.825,386.408h-20.8a1.921,1.921,0,0,0-1.916,1.916v14.539a1.921,1.921,0,0,0,1.916,1.916h20.8a1.921,1.921,0,0,0,1.916-1.916V388.324A1.921,1.921,0,0,0,68.825,386.408Zm-20.8,1.341h20.8a.582.582,0,0,1,.575.575v2.963H47.454v-2.963A.582.582,0,0,1,48.029,387.749Zm20.8,15.688h-20.8a.582.582,0,0,1-.575-.575V392.627H69.4v10.235A.582.582,0,0,1,68.825,403.437Z" fill="#fff"/>
+      <circle id="Ellipse_42" data-name="Ellipse 42" cx="0.766" cy="0.766" r="0.766" transform="translate(48.681 388.728)" fill="#fff"/>
+      <circle id="Ellipse_43" data-name="Ellipse 43" cx="0.766" cy="0.766" r="0.766" transform="translate(51.325 388.728)" fill="#fff"/>
+      <circle id="Ellipse_44" data-name="Ellipse 44" cx="0.766" cy="0.766" r="0.766" transform="translate(53.969 388.728)" fill="#fff"/>
+      <path id="Path_3983" data-name="Path 3983" d="M55.239,414.62h7.088v-7.088H55.239Zm1.341-5.747h4.406v4.406H56.58Z" transform="translate(-5.629 -13.03)" fill="#fff"/>
+      <path id="Path_3984" data-name="Path 3984" d="M87.886,407.532h-6.6a.671.671,0,0,0,0,1.341h6.6a.671.671,0,0,0,0-1.341Z" transform="translate(-21.281 -13.03)" fill="#fff"/>
+      <path id="Path_3985" data-name="Path 3985" d="M87.886,415.049h-6.6a.671.671,0,0,0,0,1.341h6.6a.671.671,0,0,0,0-1.341Z" transform="translate(-21.281 -17.667)" fill="#fff"/>
+      <path id="Path_3986" data-name="Path 3986" d="M87.886,422.565h-6.6a.671.671,0,0,0,0,1.341h6.6a.671.671,0,0,0,0-1.341Z" transform="translate(-21.281 -22.303)" fill="#fff"/>
+    </g>
+  </g>
+</svg>
