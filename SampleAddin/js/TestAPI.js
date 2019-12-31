@@ -1,7 +1,7 @@
 const axiosDefaultArgs2 = {
   timeout: 30000,
   withCredentials: false,
-  baseURL: 'http://172.22.20.97'
+  baseURL: 'http://13.76.225.121:6183'
 }
 const oAxios2 = axios.create(axiosDefaultArgs2);
 

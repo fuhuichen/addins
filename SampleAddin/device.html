@@ -164,25 +164,25 @@
                               <td><span>Usage</span></td>
                               <td style="padding:0px"><span style="/*color: #FF1100*/">{{selectDeviceDetail.CPUUsage}}</span></td>
                               <td><span>Usage</span></td>
-                              <td style="padding:0px"><span>7.7/15.9GB(48%)</span></td>
+                              <td style="padding:0px"><span>{{selectDeviceDetail.MemUsage}}</span></td>
                               <td><span>Usage</span></td>
-                              <td style="padding:0px"><span>7.7/15.9GB(48%)</span></td>
+                              <td style="padding:0px"><span>N/A</span></td>
                               <td><span>Usage</span></td>
-                              <td style="padding:0px"><span>65/256GB</span></td>
+                              <td style="padding:0px"><span>{{selectDeviceDetail.HDDUsage}}</span></td>
                             </tr>
                             <tr class="rowDataContent-inside">
                               <td><span>Temp</span></td>
                               <td style="padding:0px"><span style="/*color: #FF1100*/">{{selectDeviceDetail.CPUTemp}}</span></td>
                               <td><span>Speed</span></td>
-                              <td style="padding:0px"><span>2400 MHz</span></td>
-                              <td><span>Fan Speed</span></td>
-                              <td style="padding:0px"><span>2722RPM</span></td>
+                              <td style="padding:0px"><span>N/A</span></td>
                               <td><span>Temp</span></td>
                               <td style="padding:0px"><span>{{selectDeviceDetail.MBTemp}}</span></td>
+                              <td><span></span></td>
+                              <td style="padding:0px"><span></span></td>
                             </tr>
                             <tr class="rowDataContent-inside">
                               <td><span>Fan Speed</span></td>
-                              <td colspan="7" style="padding:0px"><span>2722RPM</span></td>
+                              <td colspan="7" style="padding:0px"><span>N/A</span></td>
                             </tr>
                           </tbody>
                         </table>
@@ -206,12 +206,14 @@
                           <tbody>
                             <tr class="rowDataHeader-inside">
                               <td>Name</td>
+                              <td>Alias</td>
                               <td>State</td>
                             </tr>
                           </tbody>
                           <tbody>
                             <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.ProcessList">
-                              <td><span>{{data.Name}}</span></td>
+                              <td><span>{{data.Name.Name}}</span></td>
+                              <td><span>{{data.Name.Alias}}</span></td>
                               <td><span>{{data.State}}</span></td>
                             </tr>
                           </tbody>
@@ -227,11 +229,13 @@
                           <tbody>
                             <tr class="rowDataHeader-inside">
                               <td>Name</td>
+                              <td>Alias</td>
                             </tr>
                           </tbody>
                           <tbody>
                             <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.monitorList">
                               <td><span>{{data.MonitorName}}</span></td>
+                              <td><span>{{data.Alias}}</span></td>
                             </tr>
                           </tbody>
                         </table>
@@ -246,14 +250,14 @@
                           <tbody>
                             <tr class="rowDataHeader-inside">
                               <td>Name</td>
-                              <td>Path</td>
+                              <td>Alias</td>
                               <td>exist</td>
                             </tr>
                           </tbody>
                           <tbody>
                             <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.usbList">
                               <td><span>{{data.Name}}</span></td>
-                              <td><span>{{data.Path}}</span></td>
+                              <td><span>{{data.Alias}}</span></td>
                               <td><span>{{data.exist}}</span></td>
                             </tr>
                           </tbody>
@@ -269,6 +273,7 @@
                           <tbody>
                             <tr class="rowDataHeader-inside">
                               <td>Model</td>
+                              <td>Alias</td>
                               <td>WorkingStatus</td>
                               <td>PaperRollStatus</td>
                               <td>exist</td>
@@ -277,6 +282,7 @@
                           <tbody>
                             <tr class="rowDataContent-inside" v-for="(data, index) in selectDeviceDetail.printerList">
                               <td><span>{{data.Model}}</span></td>
+                              <td><span>{{data.Alias}}</span></td>
                               <td><span>{{data.WorkingStatus}}</span></td>
                               <td><span>{{data.PaperRollStatus}}</span></td>
                               <td><span>{{data.exist}}</span></td>
@@ -387,7 +393,7 @@
 					columns: 'Columns'
 				}
 			},
-      selectGroup: 1,
+      selectGroup: 4,
       selectDevice: '',
       groups:[],
       deviceData_1:[],
@@ -398,52 +404,10 @@
       selectDeviceDetail: {},
 		},
 		mounted: function() {
-      // 取得當前user aid
-      //var aid = RMMGlobal.get().Login.aid;
-      //console.log("aid : " + aid);
-      //this.getAccounts(aid);
-      //this.getDeviceAll();
       this.getAccountMySelf();
       this.getDeviceList();
 		},
 		methods: {
-      /*getAccounts: function (aid) {
-        DeviceOnApis.accounts.get.accounts(aid)
-        .then(function (xhr) {
-          if (xhr && xhr.data && xhr.data.accounts) {
-            vue.accountOptions = xhr.data.accounts;
-            let aAccount = vue.accountOptions.filter(function (g, i) {
-              return g.aid === Number(aid);
-            });
-            if (aAccount.length === 0 && vue.accountOptions.length > 0) {
-              vue.selectedAccount = vue.accountOptions[0];
-            } else {
-              vue.selectedAccount = aAccount[0];
-            }
-          }
-        });
-      },*/
-      /*getDeviceAll: function() {
-        console.log("getDeviceAll");
-        DeviceOnApis.devicegroups.get
-        .devicesAll({ pageSize: 10000, no: 1 })
-        .then(xhr => {
-          if (xhr && xhr.data && xhr.data.devices) {
-            console.log("devices : " + JSON.stringify(xhr.data.devices));
-            for(var i=0 ; i<xhr.data.devices.length ; ++i) {
-              this.deviceData.push({checked: false, name: xhr.data.devices[i].name, type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
-            }
-            this.deviceData.push({checked: false, name: "HNK-15DF37", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
-            this.deviceData.push({checked: false, name: "HNK-15DF38", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
-            this.deviceData.push({checked: false, name: "HNK-15DF39", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
-            this.deviceData.push({checked: false, name: "HNK-15DF40", type: "POS", deviceStatus: "Normal", softwareStatus: "Abnormal", peripheralStatus: "Normal", online: "Online", lastUpdate: "1 days ago"});
-          }
-        })
-        .catch(error => {
-          console.log("getDeviceAll error : " + error);
-          DeviceOnApis.MessageBox.Error(self, error)
-        })
-      },*/
       getAccountMySelf: function() {
         TestAPI.accounts.post.account()
         .then(function (xhr) {
@@ -497,9 +461,27 @@
             vue.deviceData_2 = deviceData_2;
             vue.deviceData_3 = deviceData_3;
             vue.deviceData_4 = deviceData_4;
-            vue.deviceData_show = deviceData_1;
+            vue.deviceData_show = deviceData_4;
+
+            vue.checkURLParam();
           }
         });
+      },
+      checkURLParam: function() {
+        var href = window.location.href.split('?');
+        if(href.length > 1) {
+          var params = href[1].split('&');
+          for(var i=0 ; i<params.length ; ++i) {
+            var param = params[i].split('=');
+            if(param.length > 1) {
+              switch(param[0]) {
+                case 'agentId':
+                  vue.clickDevice(param[1]);
+                break;
+              }
+            }
+          }
+        }
       },
       getDeviceDetail: function(agentid) {
         vue.selectDeviceDetail = {};
@@ -513,14 +495,36 @@
                  vue.selectDeviceDetail.SUSIControl["Hardware Monitor"] &&
                  vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature &&
                  vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e) {
-                vue.selectDeviceDetail.CPUTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[0].v + "°C";
-                vue.selectDeviceDetail.MBTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[1].v + "°C";
+               for(var i=0 ; i<vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e.length ; ++i) {
+                 if(vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[i].n == "CPU") {
+                  vue.selectDeviceDetail.CPUTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[i].v + "°C";
+                 } else if(vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[i].n == "System") {
+                   vue.selectDeviceDetail.MBTemp = vue.selectDeviceDetail.SUSIControl["Hardware Monitor"].Temperature.e[i].v + "°C";
+                 }
+               }
               } else {
                 vue.selectDeviceDetail.CPUTemp = "N/A";
                 vue.selectDeviceDetail.MBTemp = "N/A";
               }
               if(vue.selectDeviceDetail.SystemMonitorInfo) {
-                vue.selectDeviceDetail.CPUUsage = vue.selectDeviceDetail.SystemMonitorInfo.e[1].v + "%";
+                var TotalMem = 0,
+                    availMem = 0;
+                for(var i=0 ; i<vue.selectDeviceDetail.SystemMonitorInfo.e.length ; ++i) {
+                  if(vue.selectDeviceDetail.SystemMonitorInfo.e[i].n == "CPU Usage") {
+                    vue.selectDeviceDetail.CPUUsage = vue.selectDeviceDetail.SystemMonitorInfo.e[i].v + "%";
+                  } else if (vue.selectDeviceDetail.SystemMonitorInfo.e[i].n == "totalPhysMemKB") {
+                    TotalMem = vue.selectDeviceDetail.SystemMonitorInfo.e[i].v / 1024 / 1024;
+                  } else if (vue.selectDeviceDetail.SystemMonitorInfo.e[i].n == "availPhysMemKB") {
+                    availMem = vue.selectDeviceDetail.SystemMonitorInfo.e[i].v / 1024 / 1024;
+                  }
+                }
+                var useMem = TotalMem - availMem;
+                vue.selectDeviceDetail.MemUsage = useMem.toFixed(1) + "/" + TotalMem.toFixed(1) + "GB (" + (useMem/TotalMem*100).toFixed(1) + "%)";
+              }
+              if(vue.selectDeviceDetail.DiskInfo) {
+                var TotalDisk = vue.selectDeviceDetail.DiskInfo[0].e[0].v ? (vue.selectDeviceDetail.DiskInfo[0].e[0].v / 1024) : 0,
+                    useDisk = vue.selectDeviceDetail.DiskInfo[0].e[1].v ? ((vue.selectDeviceDetail.DiskInfo[0].e[0].v - vue.selectDeviceDetail.DiskInfo[0].e[1].v) / 1024) : 0;
+                vue.selectDeviceDetail.HDDUsage = useDisk.toFixed(1) + "/" + TotalDisk.toFixed(1) + "GB";
               }
             }
           }

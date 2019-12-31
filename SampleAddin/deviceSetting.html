@@ -145,22 +145,24 @@
               <div style="padding:10px">
                 <span style="font-size:24px">{{selectDevice.name}}</span>
               </div>
-              <button @click="settingType = 'usb'">usb</button>
-              <button @click="settingType = 'monitor'">monitor</button>
-              <button @click="settingType = 'printer'">printer</button>
-              <button @click="settingType = 'software'">software</button>
+              <button @click="settingType = 'usb'" :style="{backgroundColor: (settingType == 'usb' ? '#4984FD' : '')}">usb</button>
+              <button @click="settingType = 'monitor'" :style="{backgroundColor: (settingType == 'monitor' ? '#4984FD' : '')}">monitor</button>
+              <button @click="settingType = 'printer'" :style="{backgroundColor: (settingType == 'printer' ? '#4984FD' : '')}">printer</button>
+              <button @click="settingType = 'software'" :style="{backgroundColor: (settingType == 'software' ? '#4984FD' : '')}">software</button>
               <div width="100%" style="margin-top:20px; border: 2px solid #B6B6B6; box-shadow: 0px 2px 8px #00000075;">
                 <table style="width: 100%;" v-if="settingType=='usb'">
                   <tbody>
                     <tr class="rowDataHeader">
                       <td width="5%"></td>
                       <td>Name</td>
+                      <td>Alias</td>
                     </tr>
                   </tbody>
                   <tbody>
                     <tr class="rowDataContent" v-for="(data, index) in device_usblist">
                       <td><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
                       <td>{{data.Name}}</td>
+                      <td><input v-model="data.Alias"></input></td>
                     </tr>
                   </tbody>
                 </table>
@@ -169,12 +171,14 @@
                     <tr class="rowDataHeader">
                       <td width="5%"></td>
                       <td>Name</td>
+                      <td>Alias</td>
                     </tr>
                   </tbody>
                   <tbody>
                     <tr class="rowDataContent" v-for="(data, index) in device_monitorlist">
                       <td><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
                       <td>{{data.MonitorName}}</td>
+                      <td><input v-model="data.Alias"></input></td>
                     </tr>
                   </tbody>
                 </table>
@@ -183,12 +187,14 @@
                     <tr class="rowDataHeader">
                       <td width="5%"></td>
                       <td>Model</td>
+                      <td>Alias</td>
                     </tr>
                   </tbody>
                   <tbody>
                     <tr class="rowDataContent" v-for="(data, index) in device_printerlist">
                       <td><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
                       <td>{{data.Model}}</td>
+                      <td><input v-model="data.Alias"></input></td>
                     </tr>
                   </tbody>
                 </table>
@@ -196,13 +202,17 @@
                   <tbody>
                     <tr class="rowDataHeader">
                       <td width="5%"></td>
+                      <td>Type</td>
                       <td>Name</td>
+                      <td>Alias</td>
                     </tr>
                   </tbody>
                   <tbody>
                     <tr class="rowDataContent" v-for="(data, index) in device_softwarelist">
                       <td><input type="checkbox" style="width:17px; height:17px; padding:0 10px;" v-model="data.checked" @click.stop="data.checked = !data.checked"></input></td>
+                      <td>{{data.Type}}</td>
                       <td>{{data.Name}}</td>
+                      <td><input v-model="data.Alias"></input></td>
                     </tr>
                   </tbody>
                 </table>
@@ -442,9 +452,15 @@
             if(xhr.data.errorcode == 0) {
               vue.device_usblist = xhr.data.data;
               for(var i=0 ; i<vue.device_usblist.length ; ++i) {
+                if(!vue.device_usblist[i].Alias) {
+                  vue.device_usblist[i].Alias = "";
+                }
                 var checked = false;
                 for(var j=0 ; j<vue.selectDeviceDetail.usbList.length ; ++j) {
                   if(vue.device_usblist[i].Path == vue.selectDeviceDetail.usbList[j].Path) {
+                    if(vue.selectDeviceDetail.usbList[j].Alias) {
+                      vue.device_usblist[i].Alias = vue.selectDeviceDetail.usbList[j].Alias;
+                    }
                     checked = true;
                     break;
                   }
@@ -465,9 +481,15 @@
             if(xhr.data.errorcode == 0) {
               vue.device_monitorlist = xhr.data.data;
               for(var i=0 ; i<vue.device_monitorlist.length ; ++i) {
+                if(!vue.device_monitorlist[i].Alias) {
+                  vue.device_monitorlist[i].Alias = "";
+                }
                 var checked = false;
                 for(var j=0 ; j<vue.selectDeviceDetail.monitorList.length ; ++j) {
                   if(vue.device_monitorlist[i].MonitorName == vue.selectDeviceDetail.monitorList[j].MonitorName) {
+                    if(vue.selectDeviceDetail.monitorList[j].Alias) {
+                      vue.device_monitorlist[i].Alias = vue.selectDeviceDetail.monitorList[j].Alias;
+                    }
                     checked = true;
                     break;
                   }
@@ -487,6 +509,9 @@
             console.log("getDeviceProcess data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
               vue.device_softwarelist = xhr.data.data;
+              for(var i=0 ; i<vue.device_softwarelist.length ; ++i) {
+                vue.device_softwarelist[i].Type = "Process";
+              }
             } else {
               vue.device_softwarelist = [];
             }
@@ -500,15 +525,24 @@
           if (xhr && xhr.data) {
             console.log("getDeviceService data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
-              var tmpArray = this.device_softwarelist || [];
+              var tmpArray = vue.device_softwarelist || [];
               for(var i=0 ; i<xhr.data.data.length ; ++i) {
                 tmpArray.push(xhr.data.data[i]);
               }
               vue.device_softwarelist = tmpArray;
               for(var i=0 ; i<vue.device_softwarelist.length ; ++i) {
+                if(!vue.device_softwarelist[i].Type) {
+                  vue.device_softwarelist[i].Type = "Service";
+                }
+                if(!vue.device_softwarelist[i].Alias) {
+                  vue.device_softwarelist[i].Alias = "";
+                }
                 var checked = false;
                 for(var j=0 ; j<vue.selectDeviceDetail.ProcessList.length ; ++j) {
                   if(vue.device_softwarelist[i].Name == vue.selectDeviceDetail.ProcessList[j].Name) {
+                    if(vue.selectDeviceDetail.ProcessList[j].Alias) {
+                      vue.device_softwarelist[i].Alias = vue.selectDeviceDetail.ProcessList[j].Alias;
+                    }
                     checked = true;
                     break;
                   }
@@ -525,11 +559,17 @@
           if (xhr && xhr.data) {
             console.log("getDevicePrinter data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
-              vue.device_printerlist = xhr.data.data;
+              vue.device_printerlist = xhr.data.data.itemList;
               for(var i=0 ; i<vue.device_printerlist.length ; ++i) {
+                if(!vue.device_printerlist[i].Alias) {
+                  vue.device_printerlist[i].Alias = "";
+                }
                 var checked = false;
                 for(var j=0 ; j<vue.selectDeviceDetail.printerList.length ; ++j) {
                   if(vue.device_printerlist[i].Model == vue.selectDeviceDetail.printerList[j].Model.Model) {
+                    if(vue.selectDeviceDetail.printerList[j].Alias) {
+                      vue.device_printerlist[i].Alias = vue.selectDeviceDetail.printerList[j].Alias;
+                    }
                     checked = true;
                     break;
                   }
@@ -565,12 +605,14 @@
             itemList.push(vue.device_usblist[i]);
           }
         }
+        console.log("updateDeviceUSB itemList : ", itemList);
         TestAPI.device.post.usbUpdate(vue.selectDevice.agentid, itemList)
         .then(function (xhr) {
           if (xhr && xhr.data) {
             console.log("updateDeviceUSB data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
               vue.getDeviceDetail();
+              alert("update device usb success");
             }
           }
         });
@@ -582,12 +624,14 @@
             itemList.push(vue.device_monitorlist[i]);
           }
         }
+        console.log("updateDeviceMonitor itemList : ", itemList);
         TestAPI.device.post.monitorUpdate(vue.selectDevice.agentid, itemList)
         .then(function (xhr) {
           if (xhr && xhr.data) {
             console.log("updateDeviceMonitor data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
               vue.getDeviceDetail();
+              alert("update device monitor success");
             }
           }
         });
@@ -605,6 +649,7 @@
             console.log("updateDevicePrinter data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
               vue.getDeviceDetail();
+              alert("update device printer success");
             }
           }
         });
@@ -622,6 +667,7 @@
             console.log("updateDeviceSoftware data : ", xhr.data);
             if(xhr.data.errorcode == 0) {
               vue.getDeviceDetail();
+              alert("update device software success");
             }
           }
         });

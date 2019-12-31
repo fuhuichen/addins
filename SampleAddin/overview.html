@@ -79,7 +79,7 @@
               <image height="30px" width="30px" :src="this.getGroupIcon(2)" style="margin: 10px 10px 15px 10px"></image>
               <span style="font-size: 26px; color: #606060;">軟體</span>
             </div>
-            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED'}" @click="clickGroup(2)">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(2), borderLeft: 'solid 10px #2091ED'}" @click="clickModal1('process')">
               <table width="100%">
                 <tbody>
                   <tr>
@@ -102,7 +102,7 @@
               <image height="30px" width="30px" :src="this.getGroupIcon(3)" style="margin: 10px 10px 15px 10px"></image>
               <span style="font-size: 26px; color: #606060;">周邊</span>
             </div>
-            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD'}" @click="clickGroup(3)">
+            <div class="top-grid" :style="{backgroundColor: getGroupBackgroundColor(3), borderLeft: 'solid 10px #36B9CD'}" @click="clickModal1('peripheral')">
               <table width="100%">
                 <tbody>
                   <tr>
@@ -349,7 +349,7 @@
                       <td>異常次數</td>
                       <td>最長時間</td>
                       <td>平均時間</td>
-                      <td></td>
+                      <td></image></td>
                     </tr>
                   </tbody>
                   <tbody>
@@ -360,7 +360,7 @@
                       <td>7</td>
                       <td>7hr</td>
                       <td>7hr</td>
-                      <td></td>
+                      <td @click="clickDevice('00000001-0000-0000-0000-C400AD20859C')"><image height="13px" width="16px" src="/static/addins/SampleAddin/image/arrow.svg"></td>
                     </tr>
                     <tr class="rowDataContent">
                       <td>2</td>
@@ -490,6 +490,7 @@
       peripheralAbnormalCount: 0,
       devicelist: [],
       devicelist_show_1: [],
+      deviceGrouplist: [],
       chartData: {
         columns: ['時', '異常次數'],
         rows: [
@@ -522,34 +523,35 @@
 		},
 		mounted: function() {
       // 取得當前user aid
-      var aid = RMMGlobal.get().Login.aid;
-      console.log("aid : " + aid);
+      //var aid = RMMGlobal.get().Login.aid;
+      //console.log("aid : " + aid);
       //this.getAccounts(aid);
       this.getDeviceHistory();
       document.getElementById('modal').style.display = 'block';
 		},
 		methods: {
-      getAccounts: function (aid) {
+      /*getAccounts: function (aid) {
           DeviceOnApis.accounts.get.accounts(aid)
               .then(function (xhr) {
                   if (xhr && xhr.data && xhr.data.accounts) {
                       vue.accountOptions = xhr.data.accounts;
                       let aAccount = vue.accountOptions.filter(function (g, i) {
-                          return g.aid === Number(aid);
+                        return g.aid === Number(aid);
                       });
                       if (aAccount.length === 0 && vue.accountOptions.length > 0) {
-                          vue.selectedAccount = vue.accountOptions[0];
+                        vue.selectedAccount = vue.accountOptions[0];
                       } else {
-                          vue.selectedAccount = aAccount[0];
+                        vue.selectedAccount = aAccount[0];
                       }
                   }
               });
-      },
+      },*/
       getDeviceHistory: function() {
         TestAPI.device.post.history()
         .then(function (xhr) {
           if (xhr && xhr.data && xhr.data.devices) {
-            console.log("device history data : " + JSON.stringify(xhr.data));
+            vue.parseDeviceGroupData(xhr.data.devices);
+            //console.log("device history data : " + JSON.stringify(xhr.data));
             var abnormalCount = 0;
             var softwareAbnormalCount = 0;
             var peripheralAbnormalCount = 0;
@@ -584,8 +586,51 @@
             vue.abnormalCount = abnormalCount;
             vue.softwareAbnormalCount = softwareAbnormalCount;
             vue.peripheralAbnormalCount = peripheralAbnormalCount;
+            console.log("abnormalCount ", abnormalCount);
+            console.log("softwareAbnormalCount ", softwareAbnormalCount);
+            console.log("peripheralAbnormalCount ", peripheralAbnormalCount);
           }
         });
+      },
+      parseDeviceGroupData(devices) {
+        console.log("devices ", devices);
+        var tmpGroups = [];
+        for(var i=0 ; i<devices.length ; ++i) {
+          var newGroup = true;
+          if(devices[i].devicegroups && devices[i].devicegroups.length > 0) {
+            for(var j=0 ; j<tmpGroups.length ; ++j) {
+              if(tmpGroups[j].name == devices[i].devicegroups[0].name) {
+                newGroup = false;
+                tmpGroups[j].deviceErrorCount += devices[i].deviceHistory.count;
+                tmpGroups[j].deviceErrorMax = (tmpGroups[j].deviceErrorMax > devices[i].deviceHistory.max) ? tmpGroups[j].deviceErrorMax : devices[i].deviceHistory.max;
+                tmpGroups[j].deviceErrorAvg = (tmpGroups[j].deviceErrorAvg + devices[i].deviceHistory.avg) / 2;
+                tmpGroups[j].softwareErrorCount += devices[i].processHistory.count;
+                tmpGroups[j].softwareErrorMax = (tmpGroups[j].softwareErrorMax > devices[i].processHistory.max) ? tmpGroups[j].softwareErrorMax : devices[i].processHistory.max;
+                tmpGroups[j].softwareErrorAvg = (tmpGroups[j].softwareErrorAvg + devices[i].processHistory.avg) / 2;
+                tmpGroups[j].peripheralErrorCount += devices[i].peripheralHistory.count;
+                tmpGroups[j].peripheralErrorMax = (tmpGroups[j].peripheralErrorMax > devices[i].peripheralHistory.max) ? tmpGroups[j].peripheralErrorMax : devices[i].peripheralHistory.max;
+                tmpGroups[j].peripheralErrorAvg = (tmpGroups[j].peripheralErrorAvg + devices[i].peripheralHistory.avg) / 2;
+                break;
+              }
+            }
+          }
+          if(newGroup) {
+            tmpGroups.push({
+              name: devices[i].devicegroups[0].name,
+              deviceErrorCount: devices[i].deviceHistory.count,
+              deviceErrorMax: devices[i].deviceHistory.max,
+              deviceErrorAvg: devices[i].deviceHistory.avg,
+              softwareErrorCount: devices[i].processHistory.count,
+              softwareErrorMax: devices[i].processHistory.max,
+              softwareErrorAvg: devices[i].processHistory.avg,
+              peripheralErrorCount: devices[i].peripheralHistory.count,
+              peripheralErrorMax: devices[i].peripheralHistory.max,
+              peripheralErrorAvg: devices[i].peripheralHistory.avg,
+            })
+          }
+        }
+        vue.deviceGrouplist = tmpGroups;
+        console.log("deviceGrouplist ", vue.deviceGrouplist);
       },
       getGroupImage: function(index) {
         return "/static/addins/SampleAddin/image/group" + index + "_unfocus.png";
@@ -643,6 +688,12 @@
       },
       clickGroup: function(index) {
         this.selectGroup = index;
+      //  this.$bus.$emit('addins', {path:'/static/addins/SampleAddin/device.html'});
+        //window.location.href = '/static/addins/SampleAddin/device.html?agentId=ABC'
+        //this.$router.push('#/deviceon/addins')
+      },
+      clickDevice: function(agentId) {
+        window.location.href = '/static/addins/SampleAddin/device.html?agentId=' + agentId;
       },
       clickModal1: function(type) {
         var devicelist=[], tmp=[];
